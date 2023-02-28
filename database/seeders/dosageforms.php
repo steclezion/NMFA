@@ -1,0 +1,183 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+class dosageforms extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        //
+DB::table('dosage_forms')->insert( ['name'=>'AEROSOL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'AEROSOL FOAM ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'AEROSOL METERED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'AEROSOL POWDER ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'AEROSOL SPRAY ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'BAR CHEWABLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'BEAD ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE COATED PELLETS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE COATED EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE DELAYED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE DELAYED RELEASE PELLETS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE FILM COATED EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE GELATIN COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CAPSULE LIQUID FILLED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CELLULAR SHEET ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CHEWABLE GEL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CLOTH ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CONCENTRATE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CREAM ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CREAM AUGMENTED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CRYSTAL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'DISC ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'DOUCHE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'DRESSING ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'ELIXIR ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'EMULSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'ENEMA ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'EXTRACT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FIBER EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FILM ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FILM EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FILM SOLUBLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'FOR SUSPENSION EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GAS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GEL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GEL DENTIFRICE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GEL METERED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GLOBULE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE DELAYED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE EFFERVESCENT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GRANULE FOR SUSPENSION EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'GUM CHEWING ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'IMPLANT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INHALANT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTABLE FOAM ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTABLE LIPOSOMAL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION EMULSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION LIPID COMPLEX ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER FOR SUSPENSION EXTENDED','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'RELEASE','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER LYOPHILIZED FOR LIPOSOMAL','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUSPENSION','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER LYOPHILIZED FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER LYOPHILIZED FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION POWDER LYOPHILIZED FOR SUSPENSION','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'EXTENDED RELEASE','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SOLUTION CONCENTRATE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SUSPENSION EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SUSPENSION LIPOSOMAL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INJECTION SUSPENSION SONICATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INSERT','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INSERT EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'INTRAUTERINE DEVICE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'IRRIGANT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'JELLY ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'KIT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LINIMENT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LIPSTICK ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LIQUID ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LIQUID EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LOTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LOTION AUGMENTED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LOTION/SHAMPOO ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'LOZENGE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'MOUTHWASH ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'NOT APPLICABLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'OIL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'OINTMENT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'OINTMENT AUGMENTED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PASTE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PASTE DENTIFRICE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PASTILLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PATCH ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PATCH EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PATCH EXTENDED RELEASE ELECTRICALLY','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'CONTROLLED','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PELLET ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PELLET IMPLANTABLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PELLETS COATED EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PILL ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'PLASTER ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POULTICE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POWDER ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POWDER DENTIFRICE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POWDER FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POWDER FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'POWDER METERED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'RING ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'RINSE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SALVE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SHAMPOO ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SHAMPOO SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOAP ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION CONCENTRATE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION FOR SLUSH ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION GEL FORMING / DROPS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION GEL FORMING EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SOLUTION/ DROPS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SPONGE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SPRAY ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SPRAY METERED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SPRAY SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'STICK ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'STRIP ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUPPOSITORY ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUPPOSITORY EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUSPENSION EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SUSPENSION/ DROPS ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SWAB ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SYRUP ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'SYSTEM ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET CHEWABLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET CHEWABLE EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET COATED PARTICLES ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET CONTROLLED RELEASE','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET DELAYED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET DELAYED RELEASE PARTICLES ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET EFFERVESCENT ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET ENTERIC COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET FILM COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET FILM COATED EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET FOR SOLUTION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET FOR SUSPENSION ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET IMMEDIATE RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET MULTILAYER ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET MULTILAYER EXTENDED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET ORALLY DISINTEGRATING ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET ORALLY DISINTEGRATING DELAYED RELEASE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET SOLUBLE ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET SUGAR COATED ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET SUSTAINED RELEASE','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TABLET WITH SENSOR ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+DB::table('dosage_forms')->insert( ['name'=>'TAMPON ','description'=>'-','created_at'=>now(),'updated_at'=>now()]);
+
+    }
+}

@@ -1,0 +1,20 @@
+vscode extension for markdown
+- markdown preview enhanced 
+
+- mermaid-js: flowcharts, gantee charts, sequence diagram, use case, state diag, ...etc
+
+- mathJax
+
+- for graphs - D3.js  and vegalite framework
+
+- sequence diagram: js-seqeuence-daigram framework
+
+
+* generate static web pages of the documentation 
+
+ visit: staticgen
+ 
+ 
+ 
+
+
