@@ -1,2 +1,31 @@
 # Google App Engine generated folder
 appengine-generated/
+<<<<<<< HEAD
+/node_modules
+/public/hot
+/public/storage
+/public/documents
+/storage/*.key
+/vendor
+./git/objects/pack/.
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# yem added 
+.gitattributes
+.env.example
+.editorconfig
+.styleci.yml
+.idea/firstapp.iml
+.idea/php.xml
+.vscode/
+=======
+# Google App Engine generated folder
+appengine-generated/
+>>>>>>> edefb4b6fcf59bce1be82db9a696e8eae810ea65
