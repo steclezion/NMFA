@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
 <p align="center">
@@ -66,3 +67,8 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 Its Medical , Medicinal and Food Administration system of .......rea
 Designed for an organization to help them understand the pattern of procurment and quality of medicine and medicinal products
 >>>>>>> edefb4b6fcf59bce1be82db9a696e8eae810ea65
+=======
+# NMFA
+Its Medical , Medicinal and Food Administration system of .......rea
+Designed for an organization to help them understand the pattern of procurment and quality of medicine and medicinal products
+>>>>>>> 19a1eaaa5fe873f3f8a94e542903970968713b00

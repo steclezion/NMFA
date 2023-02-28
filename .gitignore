@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+# Google App Engine generated folder
+appengine-generated/
+<<<<<<< HEAD
+>>>>>>> 19a1eaaa5fe873f3f8a94e542903970968713b00
 /node_modules
 /public/hot
 /public/storage
@@ -22,7 +28,14 @@ yarn-error.log
 .idea/firstapp.iml
 .idea/php.xml
 .vscode/
+<<<<<<< HEAD
 
 
 # Google App Engine generated folder
 appengine-generated/
+=======
+=======
+# Google App Engine generated folder
+appengine-generated/
+>>>>>>> edefb4b6fcf59bce1be82db9a696e8eae810ea65
+>>>>>>> 19a1eaaa5fe873f3f8a94e542903970968713b00
