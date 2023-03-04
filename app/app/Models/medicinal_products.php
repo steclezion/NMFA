@@ -10,7 +10,7 @@ class medicinal_products extends Model
 {
     use HasFactory;
     protected $table = 'medicinal_products';
-    protected $guarded = [];
+    protected $guarded = ['description'];
 
     public function medicine(){
 

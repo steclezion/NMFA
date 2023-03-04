@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\DossierEvaluationRemindersEvent;
+use App\Models\certification;
 use App\Models\certified_application;
 use App\Models\dossier;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -17,10 +19,17 @@ class DossierController extends Controller
 
     public function index()
     {
+        //list dossiers where dossier evaluation is completed (now transferred to decision)
 
         $dossiers = dossier::join('applications', 'applications.dossier_id', 'dossiers.id')
+            ->join('dossier_assignments', 'dossier_assignments.application_id', 'applications.id')
+            ->join('decisions', 'decisions.dossier_assignment_id', 'dossier_assignments.id')
+            ->join('certifications','certifications.decision_id', 'decisions.id')
             ->join('medicinal_products', 'medicinal_products.id', 'applications.medical_product_id')
             ->join('medicines', 'medicines.id', 'medicinal_products.medicine_id')
+            ->where('dossier_assignments.supervisor_id', auth()->user()->id)
+            ->where('dossiers.assignment_status', 4) // 4 = evaluation completed
+            //->where('certifications.status', 'reregistration_expired')
             ->select('applications.id',
                 'medicinal_products.product_trade_name',
                 'medicines.product_name',
@@ -34,38 +43,43 @@ class DossierController extends Controller
     {
 
         $dossier = dossier::find($dossier_id);
-        //$paths = Utils::getDirContents($dossier->path);
-
 
         $config_dossier_lifetime = Config::get('site_vars.dossier_lifetime_months');
 
-        $certified_applications = certified_application::where('dossier_id', $dossier_id)
-            ->join('applications', 'certified_applications.application_id', 'applications.id')
-            ->select('certified_applications.*')
-            ->first();
+        $certification = DB::table('certifications')
+            ->join('decisions', 'certifications.decision_id', 'decisions.id')
+            ->join('dossier_assignments', 'dossier_assignments.id', 'decisions.dossier_assignment_id')
+            ->join('dossiers', 'dossiers.id', 'dossier_assignments.dossier_id')
+            ->where('dossier_id', $dossier_id)
+            ->select('dossiers.id as dossier_id', 'certifications.*')
+        ->first();
 
-        if($certified_applications == null){
-            return Redirect()->back()->with('danger', 'No Certified Dossier Applications Found.');
+        if ($certification == null) {
+            return Redirect()->back()->with('danger', 'No Certified Applications Found for Dossier: '. $dossier->dossier_ref_num);
         }
 
-        $certified_date = $certified_applications->certified_date;
-        $expire_date = $certified_applications->expire_date;
+        $certified_date = $certification->certified_date;
+        $expiry_date = $certification->expiry_date;
         // convert to Carbon date format to use its methods
         $certified_date = Carbon::create($certified_date);
 
-        $expire_date = Carbon::create($expire_date);
-        //todo expire is updating in-place
-        $dossier_delete_due = $expire_date->addYears(5);
+        $expiry_date = Carbon::create($expiry_date);
+        // Registration expires in 5 years. But to delete dossier, wait another 5 years (total 10 years from registration)
+        $dossier_delete_due = $expiry_date->addYears(5);
+        //Note:  CAUTION - addYears updates $expiry_date in-place !! but since we are not using $expiry_date, it is ok.
 
         $diff_in_months = $certified_date->diffInMonths(Carbon::now());
+
+
         $remaining_months = $config_dossier_lifetime - $diff_in_months;
 
         $paths = Storage::disk('dossier')->allFiles($dossier->path);
 
+
         return view('dossier.show',
             ['paths' => $paths,
                 'dossier' => $dossier,
-                'certified_applications' => $certified_applications,
+                'certified_applications' => $certification,
                 'dossier_delete_due' => $dossier_delete_due,
                 'remaining_months' => $remaining_months
             ]);
@@ -82,39 +96,7 @@ class DossierController extends Controller
     public function delete_all($dossier_id)
     {
 
-        //$dossier = dossier::find($dossier_id);
-        //$app_id = $dossier->application->id;
-        //$ca = certified_application::where('applications_id', $app_id);
-        // $ca = certified_application::where('', 1);
-
-        $config_dossier_lifetime = Config::get('site_vars.dossier_lifetime_months');
-
-        $certified_applications = certified_application::where('dossier_id', $dossier_id)
-            ->join('applications', 'certified_applications.application_id', 'applications.id')
-            ->select('certified_applications.*')
-            ->first();
-
-        $certified_date = $certified_applications->certified_date;
-        $expire_date = $certified_applications->expire_date;
-
-        // convert to Carbon date format to use its methods
-        $certified_date = Carbon::create($certified_date);
-        $expire_date = Carbon::create($expire_date);
-        //todo:check next line $expire_date is updated in place
-        // which is not the desired output
-        $dossier_delete_due = $expire_date->addYears(5);
-        //dd($dossier_delete_due);
-
-        $diff_in_months = $certified_date->diffInMonths($dossier_delete_due);
-
-        if ($diff_in_months < $config_dossier_lifetime) {
-            return Redirect()->back()->with('danger', 'Dossier lifetime is now ' . $diff_in_months . ' Months. Dossier can only be
-                    deleted  after ' . $config_dossier_lifetime . ' Months.');
-        }
-
-        //todo ask condition when in re-registration process
-        //2. is it in re-registration process ?
-
+        //dd($dossier_id);
 
         try {
             $dossier = dossier::find($dossier_id);
@@ -132,6 +114,12 @@ class DossierController extends Controller
 
             //todo softdelete dossier from db dossier table?
             // other cleaning needed??
+            $dossier->delete();
+
+            $assertion = $this->assertSoftDeleted($dossier);
+
+            //dd($assertion);
+
 
             return Redirect()->back()->with('success', ' Successfully Deleted All Dossier Files. ');
 

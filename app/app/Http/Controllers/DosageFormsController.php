@@ -30,7 +30,7 @@ $data = DosageForms::latest()->orderBy('name','DESC')->get();
 return Datatables::of($data)
 ->addIndexColumn()->addColumn('action', function($row)
 {
-$btn = '<a href="javascript:void(0)" data-toggle="tooltip" title="Edit" data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editDosage"><i class="fas fa-edit"> </i></a> ';
+$btn = '<a href="javascript:void(0)" data-toggle="tooltip" title="Edit" data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editdosage"><i class="fas fa-edit"> </i></a> ';
 $btn = $btn.'<a href="javascript:void(0)" data-toggle="tooltip" title="Delete"  data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deletedosage"><i class="fas fa-trash"> </i></a> ';
 return $btn;
 }
@@ -71,23 +71,20 @@ return $btn;
 
     public function store(Request $request)
     {
+       // dd($request->all());
         try{
-        if($request->is_enlm == 'on') {$request->is_enlm='1';} else {$request->is_enlm='0';}
-        if($request->is_approved == 'on') {$request->is_approved='1';} else {$request->is_approved='0';}
-
-        $enlm = DosageForms::updateOrCreate(
+      
+        $dosage= DosageForms::updateOrCreate(
        
-             ['id' => $request->enlm_id], 
-             [ 'product_name' => $request->product_name,
-             'medicine_id' => $request->medicine_id, 
-             'product_description' => $request->product_description,
-             'is_enlm' => $request->is_enlm, 
-             'is_approved' => $request->is_approved 
+             ['id' => $request->dosage_id], 
+             [ 'name' => $request->name,
+               'description' => $request->description,
+          
              ]
         );        
 
       // dd($enlm);
-        return response()->json(['Message'=>true,'Data'=>$enlm]);
+        return response()->json(['Message'=>true,'Data'=>$dosage]);
     }
 
     catch(Exception $e) 

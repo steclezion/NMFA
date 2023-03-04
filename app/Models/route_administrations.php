@@ -8,6 +8,4 @@ use Illuminate\Database\Eloquent\Model;
 class route_administrations extends Model
 {
     use HasFactory;
-    protected $fillable = ['id','name','description'];
-    protected $table = 'route_administrations';
 }

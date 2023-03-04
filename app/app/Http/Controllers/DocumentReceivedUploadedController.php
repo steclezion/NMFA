@@ -64,7 +64,26 @@ class DocumentReceivedUploadedController extends Controller
     $data = Acknowledgement_letter::join('applications','applications.application_id','acknowledgement_letters.application_id')
     ->rightjoin('documents','documents.id','acknowledgement_letters.uploaded_applicant_document_id')
     ->leftjoin('contacts','contacts.application_id','acknowledgement_letters.application_id')
-    ->select('applications.*','acknowledgement_letters.*','acknowledgement_letters.created_at as ackdate','documents.*')
+    ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+    ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+    ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+    ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+    ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+    ->leftjoin('checklists','checklists.application_id','applications.application_id')
+    ->select(
+    'applications.*',
+    'applications.application_number as app_number',
+    'acknowledgement_letters.*',
+    'acknowledgement_letters.created_at as ackdate',
+    'documents.*',
+    'checklists.*',
+    'invoices.*',
+    'contacts.*', 
+    'medicines.product_name',
+    'medicinal_products.product_trade_name',
+    'manufacturers.name as manufacturer_name',
+    'company_suppliers.trade_name as cs_tradename'
+    )
     ->where('contacts.contact_type','=','Supplier')
     ->where('acknowledgement_letters.document_id','!=',null)
     ->where('applications.user_id','=',auth()->user()->id)
@@ -82,7 +101,7 @@ class DocumentReceivedUploadedController extends Controller
                                         
    ->addColumn('application_typee', function($row){
    if($row->application_type == 1) {$application_type="<span class='badge bg-primary'> Standard Mode </span>";}  
-   else { $application_type= "<span class='badge bg-amber'> Fast Track Mode</span>" ;}
+   else { $application_type= "<span class='badge bg-warning'> Fast Track Mode</span>" ;}
     
     return $application_type;
                     })
@@ -97,7 +116,22 @@ class DocumentReceivedUploadedController extends Controller
     return $btn;
                     })
                 
-                    ->rawColumns(['action','application_typee'])
+                    ->addColumn('application_status', function($row){
+
+
+                        if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                        elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                        elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+
+
+                        $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                        return $btn;
+                                        })
+
+
+
+                    ->rawColumns(['action','application_typee','application_status'])
                     ->make(true);
 }
       
@@ -123,9 +157,25 @@ public function invoice_receipts(Request $request)
  $data = invoices::join('applications','applications.application_id','invoices.application_id')
 ->leftjoin('documents','documents.id','invoices.uploaded_invoice_document_id')
 ->leftjoin('contacts','contacts.application_id','invoices.application_id')
-->select('applications.*','invoices.*','invoices.created_at as ackdate','documents.*')
+->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+->leftjoin('checklists','checklists.application_id','applications.application_id')
+->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+->select(
+'applications.*',
+'applications.application_number as app_number',
+'documents.*',
+'checklists.*',
+'invoices.*',
+'contacts.*', 
+'medicines.product_name',
+'medicinal_products.product_trade_name',
+'manufacturers.name as manufacturer_name',
+'company_suppliers.trade_name as cs_tradename',
+'invoices.created_at as ackdate',
+)
 ->where('contacts.contact_type','=','Supplier')
-// ->where('invoices.invoice_document_id','!=',0)
 ->where('documents.document_type','=',21)
 ->where('invoices.applicant_user_id','=',auth()->user()->id)
 ->orderBy('applications.application_number','ASC')
@@ -144,14 +194,28 @@ return $application_type;
 
 ->addColumn('action', function($row){
 
-$btn = '<a href="'.@$row->path.'" 
+$btn = '<a target="_blank" href="'.@$row->path.'" 
  class="btn-success btn-sm editAssign"><b class="fas fa-file-download">   </b> </a>';
 
 
 return $btn;
                 })
             
-                ->rawColumns(['action','application_typee'])
+
+                ->addColumn('application_status', function($row){
+
+                    if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                    elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                    elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+                    $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                    return $btn;
+
+                })
+
+
+
+                ->rawColumns(['action','application_typee','application_status'])
                 ->make(true);
 }
   
@@ -177,7 +241,29 @@ return $btn;
      $data = receipt::join('applications','applications.application_id','receipts.application_id')
     ->rightjoin('documents','documents.id','receipts.upload_financial_notification_to_applicant')
     ->leftjoin('contacts','contacts.application_id','receipts.application_id')
-    ->select('applications.*','receipts.*','receipts.created_at as ackdate','documents.*')
+    ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+    ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+    ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+    ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+    ->leftjoin('checklists','checklists.application_id','applications.application_id')
+    ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+    ->select(
+
+    'applications.*',
+    'receipts.*',
+    'receipts.created_at as ackdate',
+    'documents.*',
+    'applications.application_number as app_number',
+    'documents.*',
+    'checklists.*',
+    'invoices.*',
+    'contacts.*', 
+    'medicines.product_name',
+    'medicinal_products.product_trade_name',
+    'manufacturers.name as manufacturer_name',
+    'company_suppliers.trade_name as cs_tradename',
+
+)
     ->where('contacts.contact_type','=','Supplier')
     ->where('receipts.financial_notification_flag','!=',0)
     ->where('applications.user_id','=',auth()->user()->id)
@@ -188,7 +274,7 @@ return $btn;
     // $data = Book::latest()->get();
             return Datatables::of($data)->addIndexColumn()
             ->addColumn('application_typee', function($row){
-                if($row->application_type == 1) {$application_type="<span class='badge bg-blend-lighten'> Standard Mode </span>";}  
+                if($row->application_type == 1) {$application_type="<span class='badge bg-primary'> Standard Mode </span>";}
                 else { $application_type= "<span class='badge bg-warning'> Fast Track Mode</span>" ;}
                  
     return $application_type;
@@ -197,20 +283,222 @@ return $btn;
 
    ->addColumn('action', function($row){
    
-    $btn = '<a href="'.@$row->path.'" 
+    $btn = '<a target="_blank" href="'.@$row->path.'" 
      class="btn-success btn-sm editAssign"><b class="fas fa-file-download">   </b> </a>';
  
     
     return $btn;
                     })
                 
-                    ->rawColumns(['action','application_typee'])
+
+                    ->addColumn('application_status', function($row){
+
+                        if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                        elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                        elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+                        $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                        return $btn;
+
+                    })
+
+
+
+                    ->rawColumns(['action','application_typee','application_status'])
                     ->make(true);
 }
       
        // return view('assign_unassign.assigned',compact('dataa'));
 
         return view('Document_Received.from_financial_notification');
+
+
+    }
+
+
+
+
+
+
+    public function documents_psurs(Request $request)
+    {
+
+  $dataa = User::orderBy('id','ASC')->get();
+        if ($request->ajax())
+{
+
+     $data = applications::join('acknowledgment_letter_receipt_psurs','applications.application_id','acknowledgment_letter_receipt_psurs.application_id')
+    ->rightjoin('documents','documents.id','acknowledgment_letter_receipt_psurs.uploaded_id')
+    ->leftjoin('contacts','contacts.application_id','applications.application_id')
+    ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+    ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+    ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+    ->leftjoin('checklists','checklists.application_id','applications.application_id')
+    ->leftjoin('dossier_assignments','applications.id','dossier_assignments.application_id')
+    ->leftjoin('decisions','dossier_assignments.id','decisions.dossier_assignment_id')
+    ->leftjoin('certifications','decisions.id','certifications.decision_id')
+    ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+    ->select(
+    'applications.*',
+    'certifications.*','certifications.registration_number as regnumber',
+    'contacts.*', 'acknowledgment_letter_receipt_psurs.*', 'documents.*','applications.application_number as app_number',
+    'documents.*',
+    'checklists.*',
+    'acknowledgment_letter_receipt_psurs.created_at as ackdate',
+    'contacts.*', 
+    'medicines.product_name',
+    'medicinal_products.product_trade_name',
+    'manufacturers.name as manufacturer_name',
+    'company_suppliers.trade_name as cs_tradename',
+
+)
+->where('contacts.contact_type','=','Supplier')
+    ->where('applications.user_id','=',auth()->user()->id)
+    ->orderBy('applications.application_number','ASC')
+    ->get();
+
+
+    // $data = Book::latest()->get();
+            return Datatables::of($data)->addIndexColumn()
+            ->addColumn('application_typee', function($row){
+                if($row->application_type == 1) {$application_type="<span class='badge bg-primary'> Standard Mode </span>";}
+                else { $application_type= "<span class='badge bg-warning'> Fast Track Mode</span>" ;}
+                 
+    return $application_type;
+                    })
+
+
+   ->addColumn('action', function($row){
+   
+    $btn = '<a target="_blank" href="'.@$row->path.'" 
+     class="btn-success btn-sm editAssign"><b class="fas fa-file-download">   </b> </a>';
+ 
+    
+    return $btn;
+                    })
+                
+
+                    ->addColumn('application_status', function($row){
+
+                        if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                        elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                        elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+                        $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                        return $btn;
+
+                    })
+
+
+
+                    ->rawColumns(['action','application_typee','application_status'])
+                    ->make(true);
+}
+      
+       // return view('assign_unassign.assigned',compact('dataa'));
+
+        return view('Document_Received.from_acknowledgment_letter_receipt_psurs');
+
+
+    }
+
+
+
+
+    public function documents_nmfa_alerts(Request $request)
+    {
+
+       
+
+  $dataa = User::orderBy('id','ASC')->get();
+
+
+        if ($request->ajax())
+{
+
+     $data = applications::join('contacts','contacts.application_id','applications.application_id')
+    ->join('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+    ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+    ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+    ->join('checklists','checklists.application_id','applications.application_id')
+    ->leftjoin('dossier_assignments','applications.id','dossier_assignments.application_id')
+    ->leftjoin('decisions','dossier_assignments.id','decisions.dossier_assignment_id')
+    ->leftjoin('certifications','decisions.id','certifications.decision_id')
+    ->join('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+    ->join('nmfa_directors','applications.application_id','=','nmfa_directors.application_id')
+    ->join('documents','documents.id','=','nmfa_directors.nmfa_directors_document_id')
+    ->select(
+    'applications.*',
+    'certifications.*','certifications.registration_number as regnumber',
+    'contacts.*',
+     'documents.*','applications.application_number as app_number',
+    'documents.*',
+    'checklists.*',
+    'nmfa_directors.*',
+    'nmfa_directors.created_at as ackdate', 
+    'medicines.product_name',
+    'medicinal_products.product_trade_name',
+    'manufacturers.name as manufacturer_name',
+    'company_suppliers.trade_name as cs_tradename',
+
+)
+->where('contacts.contact_type','=','Supplier')
+    ->orwhere('nmfa_directors.Send_To_id','=',auth()->user()->id)
+    ->Where('nmfa_directors.Send_To_id','=','Both')
+    ->distinct()
+    ->orderBy('applications.application_number','ASC')
+    ->get();
+
+
+
+    // $data = Book::latest()->get();
+            return Datatables::of($data)->addIndexColumn()
+            ->addColumn('application_typee', function($row){
+                if($row->application_type == 1) {$application_type="<span class='badge bg-primary'> Standard Mode </span>";}
+                else { $application_type= "<span class='badge bg-warning'> Fast Track Mode</span>" ;}
+                     return $application_type;
+                    })
+
+
+   ->addColumn('action', function($row){
+   
+    $btn = '<a  target="_blank" target="_blank"  href="'.@$row->path.'" 
+     class="btn-success btn-sm editAssign"><b class="fas fa-file-download">   </b> </a>';
+ 
+    
+    return $btn;
+                    })
+                
+
+                    ->addColumn('application_status', function($row){
+
+                        if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                        elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                        elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+                        $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                        return $btn;
+
+                    })
+                    ->addColumn('regnumber', function($row){
+
+                        if($row->regnumber== '') {  $row->regnumber='N/A'; }
+                        elseif($row->regnumber != '') { $row->regnumber=$row->regnumber; }
+                    
+                        $btn = "<span >  $row->regnumber </span>";
+
+                        return $btn;
+
+                    })
+
+
+                    ->rawColumns(['action','application_typee','application_status','regnumber'])
+                    ->make(true);
+}
+      
+       // return view('assign_unassign.assigned',compact('dataa'));
+
+        return view('Document_Received.from_nmfa_directors');
 
 
     }
@@ -238,13 +526,13 @@ return $btn;
  
     ->join('contacts','contacts.application_id','applications.application_id')
     ->select('applications.*',
-    DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname'),
+    DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname'),
     'medicinal_products.*','medicinal_products.product_trade_name as t_name','company_suppliers.*',
     'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*',
     'contacts.first_name as cfirst_name','contacts.middle_name as cmiddle_name',
     'contacts.last_name as clast_name')
     ->where('contacts.contact_type','=','Supplier')
-    // ->where('applications.assigned_To','<>',NULL)
+    //->where('applications.assigned_To','<>',NULL)
     ->orderBy('application_number','ASC')
     ->get();
 
@@ -288,7 +576,7 @@ return $btn;
                 }
                 else
                 {
-                    $btn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->application_id.'"
+                    $btn = '<a target="_blank" href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->application_id.'"
                     data-original-title="Edit" class="edit btn btn-primary btn-sm editAssign">Assign</a>';
                 
                    // $btn = $btn.'<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->application_id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteAssign">Un Assign</a>';
@@ -301,7 +589,7 @@ return $btn;
                     })
                     ->addColumn('application_status', function($row){
    
-                        $btn = '<a href="javascript:void(0)"  style="background-color:violet;color:black"class="btn btn-default btn-sm">'.$row->application_status.'</a>';
+                        $btn = '<a target="_blank" href="javascript:void(0)"  style="background-color:violet;color:black"class="btn btn-default btn-sm">'.$row->application_status.'</a>';
                      return $btn;
                      })
                     ->rawColumns(['action','application_status'])
@@ -409,7 +697,7 @@ return $btn;
     
     $main_task = $this->get_main_task_id($application->id,'Application');
     $end_time =  date('Y-m-d H:i:s', strtotime('+ '.$duration_days.' days'));
-    $issued_datetime = date('Y-m-d H:i:s', strtotime('-3'));
+    $issued_datetime = date('Y-m-d H:i:s');
     $task_category = 'Screening';
     $task_activity_title = 'Screening process';
     $content_details = 'Application assigned to assesor for  screening ';

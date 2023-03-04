@@ -55,7 +55,7 @@ class MainTaskController extends Controller
                 'task_duration_days_plan' => $task_duration_plan,
                 'start_time' => $start_time,
                 'end_time' => $end_time,
-                'task_duration_days_actual' => 0,
+                'task_duration_days_actual' => null,
                 'deadline' => $deadline,
                 'task_status' => $task_status,
                 'is_archived' => 0,

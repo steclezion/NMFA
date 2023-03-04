@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\FPDF;
 use App\Models\applications;
 use App\Models\Country;
+use App\Models\application_receipt_of_registration;
 use App\Models\agents_template;
 use App\Models\company_suppliers_template;
 use App\Models\payment_configuration;
@@ -54,8 +55,66 @@ class check_list extends Controller
      */
 //Acknowledgement_Letter
 
+public function check_preliminary_screening(Request $request)
+{
 
-    public function index()
+//dd($request->all());
+
+$check_list = DB::table('applications')
+->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+->leftjoin('checklists','checklists.application_id','applications.application_id')
+->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+->where('applications.application_id',$request->application_id)
+->orderBy('invoices.invoice_number','ASC')
+->first();
+
+$check_steps= explode(',',$check_list->supervisor_hold_assessor_progress);
+
+if($check_list->application_type ==2){
+
+if(in_array('1',$check_steps)) {$section_one=1;} else {$section_one=0;}
+if(in_array('2',$check_steps)) {$section_two=1;} else {$section_two=0;}
+if(in_array('3',$check_steps)) {$section_three=1;} else {$section_three=0;}
+if(in_array('5',$check_steps)) {$section_five=1;} else {$section_five=0;}
+$section_four=0;
+
+if($section_one==1 && $section_two ==1 && $section_three==1 &&  $section_five==1) { $decision=1;} else {$decision=0;}
+
+}
+
+elseif($check_list->application_type ==1)
+{
+
+if(in_array('1',$check_steps)) {$section_one=1;} else {$section_one=0;}
+if(in_array('2',$check_steps)) {$section_two=1;} else {$section_two=0;}
+if(in_array('4',$check_steps)) {$section_four=1;} else {$section_four=0;}
+if(in_array('5',$check_steps)) {$section_five=1;} else {$section_five=0;}
+$section_three = 0;
+
+if($section_one==1 && $section_two ==1 && $section_four==1 &&  $section_five==1) { $decision=1;} else {$decision=0;}
+
+}
+
+
+return response()->json([ 
+    'section_one'=>$section_one,
+    'section_two'=>$section_two,
+    'section_three'=>$section_three,
+    'section_four'=>$section_four,
+    'section_five'=>$section_five,
+    'final_button' => $decision,
+    ]);
+
+}
+    
+
+
+public function index()
     {
         //
         $countries = Country::all()->sortBy('country_name');;
@@ -72,18 +131,27 @@ class check_list extends Controller
            
         $applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
         ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
+        ->leftjoin('medicines','medicinal_products.medicine_id','medicines.id')
         ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
-        //->join('users','users.id','applications.user_id')
+        ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
         ->join('contacts','contacts.application_id','applications.application_id')
         ->leftjoin('checklists','checklists.application_id','applications.application_id')
+        ->leftjoin('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
         ->distinct()
-        ->select('checklists.*','checklists.application_id as check_app','applications.application_id','medicinal_products.*','medicinal_products.product_trade_name as t_name',
+        ->select( 'medicines.*','documents.*','application_receipt_of_registrations.*' ,
+         'application_receipt_of_registrations.application_number as app_receipt_number',
+         'checklists.*','checklists.application_id as check_app',
+         'applications.application_id','medicinal_products.*',
+         'medicinal_products.product_trade_name as t_name',
         'company_suppliers.*','company_suppliers.trade_name as cs_tradename','applications.*',
         'contacts.*','contacts.first_name as cfirst_name','contacts.middle_name as cmiddle_name',
         'contacts.last_name as clast_name')
         ->where('contacts.contact_type','=','Supplier')
         // ->where('applications.user_id',auth()->user()->id)
         ->where('applications.assigned_To','=',auth()->user()->id)
+        ->where('applications.registration_type','New')
+        // ->orWhere('application_receipt_of_registrations.application_id','=',$id)
+        ->orderBy('applications.application_number','ASC')
         ->get();
        
 
@@ -110,8 +178,9 @@ class check_list extends Controller
      */
 
 
-    public function Acknowledgement_Letter($id)
-    {
+     public function process_checklist_register(Request $request,$id)
+     {
+
         $check_list = DB::table('applications')
         ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
         ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
@@ -120,29 +189,324 @@ class check_list extends Controller
         ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
         ->leftjoin('checklists','checklists.application_id','applications.application_id')
         ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+        ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+        ->where('applications.application_id',$id)
+        ->orderBy('invoices.invoice_number','ASC')
+        ->get();
+
+$agent_contact_info = DB::table('agents')->where('agents.application_id',$id)
+                 ->leftjoin('contacts', 'agents.application_id', '=', 'contacts.application_id')
+                 ->where('contact_type','Agent')
+                 ->get();
+
+$applicant_contact_info = DB::table('applications')->where('applications.application_id',$id)
+                 ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+                 ->where('contact_type','Supplier')
+                 ->get();
+
+$product_composition_info = DB::table('product_compositions')->where('product_compositions.application_id',$id)->get();
+
+$receipts_info = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+$api_manufacturers_info = DB::table('api_manufacturers')->where('api_manufacturers.application_id',$id)->get();
+
+
+$product_enlm_list = DB::table('applications')
+                        ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                        ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                        ->where('applications.application_id',$id)
+                        ->select('applications.*','medicines.*','medicinal_products.*')
+                        ->get();
+
+
+$dosage_forms = DB::table('medicinal_products')
+                        ->join('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+                        ->where('medicinal_products.dosage_form_id','=',$product_enlm_list[0]->dosage_form_id)
+                        ->select('dosage_forms.*','medicinal_products.*')
+                        ->get();
+
+$invoice_number = DB::table('invoices')->where('invoices.application_id',$id)->get();
+
+$receipts_number = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+foreach($check_list as $check_lists ) {break;}
+
+if( $check_lists->is_application_letter == 1)
+{   $route_name = 'checklist.process_check_list_partially_Saved_re-register'; }
+else {
+$route_name = 'checklist.process_check_list_re-register';
+}
+
+
+return view($route_name,[
+            'check_list' => $check_list,
+            'agent_contact_info' => $agent_contact_info,
+            'product_composition_info' => $product_composition_info,
+            'api_manufacturers_info' => $api_manufacturers_info,
+            'product_enlm_list' => $product_enlm_list,
+            'receipts_info' => $receipts_info,
+            'dosage_forms' => $dosage_forms,
+            'applicant_contact_info' => $applicant_contact_info,
+            'invoice_number' => $invoice_number,
+            'receipts_number' =>$receipts_number,
+
+
+        ]);
+
+
+
+
+     }
+
+
+     public function checklist_renew()
+     {
+
+        //
+        $countries = Country::all()->sortBy('country_name');;
+        $fast_track_applications =  fast_track_application::all()->sortBy('name');;
+        $dosage_forms  = DosageForms::all()->sortBy('name');;
+        $apis  = apis::all()->sortBy('api_name');;
+        $route_administrations = route_administrations::all()->sortBy('name');
+        $agents = agents::all()->sortBy('trade_name');
+        $company_suppliers = company_suppliers::all()->sortBy('trade_name');
+        $product_details =  product_details::all()->sortBy('product_name');
+
+    
+               
+           
+         $applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
+        ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
+        ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
+        //->join('users','users.id','applications.user_id')
+        ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+        ->join('contacts','contacts.application_id','applications.application_id')
+        ->leftjoin('checklists','checklists.application_id','applications.application_id')
+
+          ->leftjoin('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
+        ->distinct()
+        ->select('checklists.*','documents.*',
+        'application_receipt_of_registrations.application_number as app_receipt_number',
+        'checklists.application_id as check_app','applications.application_id',
+        'medicinal_products.*', 'medicinal_products.product_trade_name as t_name',
+        'company_suppliers.*','company_suppliers.trade_name as cs_tradename',
+        'applications.*','contacts.*',
+        'contacts.first_name as cfirst_name',
+        'contacts.middle_name as cmiddle_name',
+        'contacts.last_name as clast_name')
+        ->where('contacts.contact_type','=','Supplier')
+        ->where('applications.assigned_To','=',auth()->user()->id)
+        ->where('applications.registration_type','Re-new')
+        ->orderBy('applications.application_number','ASC')
+        ->get();
+       
+
+      
+
+           return view('checklist.checklist_re-register',[
+            'countries' => $countries,
+            'fast_track_applications' =>$fast_track_applications,
+            'dosage_forms'=>  $dosage_forms,
+            'apis'=>  $apis,
+            'route_administrations'=>$route_administrations ,
+            'company_suppliers'=> $company_suppliers,
+            'agents'=>$agents,
+            'medicines'=>$product_details,
+            'applications' =>  $applications,
+         
+        ]);
+     }
+
+
+public function Acknowledgement_of_Receipt_of_Registration_Application($id)
+{
+
+
+$check_list = DB::table('applications')
+->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+->leftjoin('checklists','checklists.application_id','applications.application_id')
+->leftjoin('contacts','contacts.application_id','applications.application_id')
+->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+->select('application_receipt_of_registrations.*','checklists.*', 
+  DB::raw('concat(contacts.first_name,"  ",contacts.last_name) as fullname_contact'),
+  'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
+  'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+  ->where('applications.application_id',$id)
+  ->where('contacts.contact_type','Supplier')
+  ->orderBy('invoices.invoice_number','ASC')
+  ->get();
+
+
+  $Receipt_of_Registration_Application = DB::table('application_receipt_of_registrations')->where('application_id', $id)->first();
+
+  if(  @$Receipt_of_Registration_Application->application_number != '')
+  {
+     $select_document_id = DB::table('documents')->where('id', $$Receipt_of_Registration_Application->document_id)->first();
+      @$path = $select_document_id->path;
+}
+  else
+  {
+      $path='';
+    
+  }
+
+
+
+$product_enlm_list = DB::table('applications')
+                            ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                            ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                            ->where('applications.application_id',$id)
+                            ->select('applications.*','medicines.*','medicinal_products.*')
+                            ->first();
+
+
+$dosage_forms = DB::table('medicinal_products')
+                            ->join('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+                            ->where('medicinal_products.dosage_form_id','=',$product_enlm_list->dosage_form_id)
+                            ->select('dosage_forms.*','medicinal_products.*')
+                            ->get();
+
+
+
+$application_receipt_of_registration = DB::table('application_receipt_of_registrations')
+                            ->where('application_receipt_of_registrations.application_id','=',$id)
+                            ->select('application_receipt_of_registrations.*')
+                            ->get();
+
+
+ $application_receipt_of_registrations =  new application_receipt_of_registration;
+                            $t=time();
+                            $year = Date('Y');
+                            $count = application_receipt_of_registration::where('Reference_number', '<>', null)->count();
+                            $count_sequence = $count + 1;
+                            $zero_filled_counter = sprintf('%04d', $count_sequence);
+                            $squential_Reference_number= 'NMFA/RL/'.$year."/".$zero_filled_counter;
+
+
+
+return view('Acknowledgement_of_Receipt_of_Registration_Application.Acknowledgement_of_Receipt_of_Registration_Application',
+
+[
+    'check_list' =>  $check_list ,
+    'application_receipt_of_registrations' => $application_receipt_of_registrations,
+    'application_receipt_of_registration'=> $application_receipt_of_registration,
+    'dosage_forms' => $dosage_forms,
+    'product_enlm_list' => $product_enlm_list ,
+    'squential_Reference_number' =>  $squential_Reference_number,
+    'path' =>  $path,
+]);
+
+
+
+
+}
+
+
+public function reject_Acknowledgement_Letter_preliminary_screening_application($id)
+{
+
+
+    $check_list = DB::table('applications')
+    ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+    ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+    ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+    ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+    ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+    ->leftjoin('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+    ->leftjoin('checklists','checklists.application_id','applications.application_id')
+    ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+    ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name',
+    'medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name',
+     DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname_contact'),
+    'company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount','dosage_forms.name as dname')
+    ->where('applications.application_id',$id)
+    ->where('contacts.contact_type','Supplier')
+    ->orderBy('invoices.invoice_number','ASC')
+    ->get();
+
+       //dd($check_list);
+
+    $count = Acknowledgement_letter::where('RL_squential_number', '<>', null)->count();
+    $count_sequence = $count + 1;
+    $year = Date('Y');
+    $zero_filled_counter = sprintf('%04d', $count_sequence);  
+    $random_application_RL_squential_number= 'NMFA/RL/'.$year."/".$zero_filled_counter;
+    $country_contact_info = DB::table('countries')->where('id',$check_list[0]->country_id)
+     ->Orwhere('id',68)
+      ->select('countries.*','countries.id as countryid','countries.country_name as contact_country_name')
+      ->get();
+
+$Assessor_generated_Acknowledgemet_letter = DB::table('acknowledgement_letters')->where('application_id', $id)->get();
+
+if(  @$Assessor_generated_Acknowledgemet_letter[0]->application_number != '')
+{
+   $select_document_id = DB::table('documents')->where('id', $Assessor_generated_Acknowledgemet_letter[0]->document_id)->get();
+    @$path = $select_document_id[0]->path;
+    $number_days_receipts = $Assessor_generated_Acknowledgemet_letter[0]->number_days_receipts;
+
+}
+else
+{
+    $path='';
+    $number_days_receipts  = '';
+}
+
+
+return view('Acknowledgement_Letter.reject_Acknowledgement_Letter_preliminary_screening_application',
+
+[
+    'check_list' =>  $check_list ,
+    'country_contact_info' => $country_contact_info,
+    'random_application_RL_squential_number'=> $random_application_RL_squential_number,
+    'path' => $path,
+    'number_days_receipts' => $number_days_receipts ,
+]);
+
+
+
+
+}
+
+
+    public function Acknowledgement_Letter($id)
+    {
+        $check_list = DB::table('applications')
+        ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+        ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+        ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+        ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+        ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+        ->leftjoin('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+        ->leftjoin('checklists','checklists.application_id','applications.application_id')
+        ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
         ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name',
         'medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name',
-         DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname_contact'),
-        'company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+         DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname_contact'),
+        'company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount','dosage_forms.name as dname')
         ->where('applications.application_id',$id)
         ->where('contacts.contact_type','Supplier')
         ->orderBy('invoices.invoice_number','ASC')
         ->get();
 
 
+           //dd($check_list);
+
+           
         $count = Acknowledgement_letter::where('RL_squential_number', '<>', null)->count();
         $count_sequence = $count + 1;
         $year = Date('Y');
         $zero_filled_counter = sprintf('%04d', $count_sequence);  
         $random_application_RL_squential_number= 'NMFA/RL/'.$year."/".$zero_filled_counter;
+        $country_contact_info = DB::table('countries')->where('id',$check_list[0]->country_id)
+         ->Orwhere('id',68)
+          ->select('countries.*','countries.id as countryid','countries.country_name as contact_country_name')
+          ->get();
 
-    $country_contact_info = DB::table('countries')->where('id',$check_list[0]->country_id)
-                           ->Orwhere('id',68)
-                           ->select('countries.*','countries.id as countryid','countries.country_name as contact_country_name')
-                           ->get();
-
-      
-      
  $Assessor_generated_Acknowledgemet_letter = DB::table('acknowledgement_letters')->where('application_id', $id)->get();
 
     if(  @$Assessor_generated_Acknowledgemet_letter[0]->application_number != '')
@@ -239,6 +603,27 @@ try{
     }
 
 
+    $application=applications::where('application_id',$request->application_id)->first();
+
+            $duration_days = 10;
+
+            $main_task = $this->get_main_task_id($application->id,'Application');
+            $end_time =  date('Y-m-d H:i:s');
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Screening';
+            $task_activity_title = 'Sample Details';
+            $content_details = 'Check list step four saved';
+            $route_link = '';
+            $activity_status = 'Section four completed';
+            $uploaded_document_id = null;
+
+            MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+            $task_activity_title,
+            $content_details,
+            $route_link, $activity_status,
+            $uploaded_document_id);
+
+
       return response()->json([ 'Message'=>true,'application_id'=> $request->application_id
 
 
@@ -321,6 +706,28 @@ try{
     }
 
 
+    $application=applications::where('application_id',$request->application_id)->first();
+
+    
+
+            $main_task = $this->get_main_task_id($application->id,'Application');
+   
+            $end_time = date('Y-m-d H:i:s');
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Screening';
+            $task_activity_title = 'Specific requirements for fast-track registration';
+            $content_details = 'Check list step three saved';
+            $route_link = '';
+            $activity_status = 'Section three completed';
+            $uploaded_document_id = null;
+
+            MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+            $task_activity_title,
+            $content_details,
+            $route_link, $activity_status,
+            $uploaded_document_id);
+
+
       return response()->json([ 'Message'=>true,'application_id'=> $request->application_id
 
 
@@ -343,30 +750,11 @@ try{
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public function submit_section_two(Request $request)
     {
         //  dd($request->all());
         try{
-
-           
-
-
-            $fetch_section_one_two_to_supervisor= DB::table('checklists')
+             $fetch_section_one_two_to_supervisor= DB::table('checklists')
             ->where('application_id', $request->application_id)
             ->get();
 
@@ -423,6 +811,27 @@ try{
             }
 
 
+            $application=applications::where('application_id',$request->application_id)->first();
+
+           
+
+            $main_task = $this->get_main_task_id($application->id,'Application');
+            $end_time = date('Y-m-d H:i:s');
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Screening';
+            $task_activity_title = 'General requirements check list';
+            $content_details = ' check list step two saved';
+            $route_link = '';
+            $activity_status = 'Section one and two completed';
+            $uploaded_document_id = null;
+
+            MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+            $task_activity_title,
+            $content_details,
+            $route_link, $activity_status,
+            $uploaded_document_id);
+
+
               return response()->json([ 'Message'=>true,'application_id'=> $request->application_id
        
         
@@ -444,6 +853,19 @@ try{
     }
 
 
+
+    private function get_main_task_id($application_id, $related_type = 'Application')
+    {
+        $main_task = MainTask::where('related_id', $application_id)
+            ->where('related_task', $related_type)
+            ->first();
+        if ($main_task) {
+            return $main_task;
+        } else {
+
+            return 0; //means false
+        }
+    }
 
     public function save_section_two(Request $request)
     {
@@ -483,6 +905,12 @@ try{
 
     public function update_section_five(Request $request)
     {
+
+        $update_supervisor = DB::table('checklists')
+        ->where('application_id', $request->application_id)
+        ->first();
+
+        $update_supervisor_added=    $update_supervisor->supervisor_hold_assessor_progress.",5";
  $affected_section_five_checklist= DB::table('checklists')
         ->where('application_id', $request->application_id)
         ->update(
@@ -492,6 +920,7 @@ try{
               'is_application_receipt_number' => $request->Application_Receipt_Number,
               'remark_section_five' => $request->Remark_section_five,
               'over_all_comment' => $request->over_all_comment,
+              'supervisor_hold_assessor_progress'=> $update_supervisor_added,
            ]
 
               );
@@ -500,6 +929,31 @@ try{
 
               if($affected_section_five_checklist == true)
               {
+
+
+
+                $application=applications::where('application_id',$request->application_id)->first();
+
+
+
+            $main_task = $this->get_main_task_id($application->id,'Application');
+            $end_time =   date('Y-m-d H:i:s');
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Screening';
+            $task_activity_title = 'Payment Details';
+            $content_details = 'Check list step five saved';
+            $route_link = '';
+            $activity_status = 'Section five completed';
+            $uploaded_document_id = null;
+
+            MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+            $task_activity_title,
+            $content_details,
+            $route_link, $activity_status,
+            $uploaded_document_id);
+
+
+
                  return response()->json([
                 'section_five_update'=>1,
                 'Application_ID'=>$request->application_id ]);
@@ -612,13 +1066,13 @@ try{
  public function update_section_two(Request $request)
     {
         
-       
+     
 $affected_section_two_checklist= DB::table('checklists')
         ->where('application_id', $request->application_id)
         ->update(
             [   
               'is_application_letter' => $request->application_letter,
-              'is_local_agent' => $request->application_letter,
+              'is_local_agent' => $request->local_agent,
               'is_manufacturer_inforamation' => $request->manufacturer_information,
               'is_enlm' => $request->enml,
               'is_module_one' => $request->module_one,
@@ -683,9 +1137,7 @@ $affected_section_two_checklist= DB::table('checklists')
         //
     }
 
-
-
-        /**
+ /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
@@ -702,7 +1154,13 @@ $affected_section_two_checklist= DB::table('checklists')
             ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
             ->leftjoin('checklists','checklists.application_id','applications.application_id')
             ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
-            ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+            ->select('checklists.*','applications.*','invoices.*','contacts.*', 
+            'medicines.product_name','medicinal_products.product_trade_name',
+             'manufacturers.name as manufacturer_name',
+             'company_suppliers.trade_name',
+             'invoices.invoice_number',
+             'invoices.remark',
+             'invoices.amount')
             ->where('applications.application_id',$id)
             ->orderBy('invoices.invoice_number','ASC')
             ->get();
@@ -858,7 +1316,106 @@ return view('checklist.process_check_list_partially_Saved',[
             'applicant_contact_info' => $applicant_contact_info,
             'invoice_number' => $invoice_number,
             'receipts_number' =>$receipts_number,
-            
+
+
+        ]);
+
+
+
+    }
+
+
+
+
+    public function get_checked_partially_Saved_re($id)
+    {
+
+        //
+        $check_list = DB::table('applications')
+        ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+        ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+        ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+        ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+        ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+        ->leftjoin('checklists','checklists.application_id','applications.application_id')
+        ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+        ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+        ->where('applications.application_id',$id)
+        ->orderBy('invoices.invoice_number','ASC')
+        ->get();
+
+$agent_contact_info = DB::table('agents')->where('agents.application_id',$id)
+                 ->leftjoin('contacts', 'agents.application_id', '=', 'contacts.application_id')
+                 ->where('contact_type','Agent')
+                 ->get();
+
+$product_composition_info = DB::table('product_compositions')->where('product_compositions.application_id',$id)->get();
+
+$receipts_info = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+$api_manufacturers_info = DB::table('api_manufacturers')->where('api_manufacturers.application_id',$id)->get();
+
+
+$product_enlm_list = DB::table('applications')
+                        ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                        ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                        ->where('applications.application_id',$id)
+                        ->select('applications.*','medicines.*')
+                        ->get();
+
+
+
+                        $applicant_contact_info = DB::table('applications')->where('applications.application_id',$id)
+                        ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+                        ->where('contact_type','Supplier')
+                        ->get();
+
+   $product_composition_info = DB::table('product_compositions')->where('product_compositions.application_id',$id)->get();
+
+   $receipts_info = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+   $api_manufacturers_info = DB::table('api_manufacturers')->where('api_manufacturers.application_id',$id)->get();
+
+
+   $product_enlm_list = DB::table('applications')
+                               ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                               ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                               ->where('applications.application_id',$id)
+                               ->select('applications.*','medicines.*','medicinal_products.*')
+                               ->get();
+
+
+   $dosage_forms = DB::table('medicinal_products')
+                               ->join('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+                               ->where('medicinal_products.dosage_form_id','=',$product_enlm_list[0]->dosage_form_id)
+                               ->select('dosage_forms.*','medicinal_products.*')
+                               ->get();
+
+
+   $invoice_number = DB::table('invoices')->where('invoices.application_id',$id)->get();
+
+
+   $receipts_number = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+   $receipts_number = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+
+return view('checklist.process_check_list_partially_Saved_re-register',[
+            'check_list' => $check_list,
+            'agent_contact_info' => $agent_contact_info,
+            'product_composition_info' => $product_composition_info,
+            'api_manufacturers_info' => $api_manufacturers_info,
+            'product_enlm_list' => $product_enlm_list,
+            'receipts_info' => $receipts_info,
+            'dosage_forms' => $dosage_forms,
+            'applicant_contact_info' => $applicant_contact_info,
+            'invoice_number' => $invoice_number,
+            'receipts_number' =>$receipts_number,
+
            
         ]);
 
@@ -973,4 +1530,87 @@ return view($route_name,[
 
 
   
+
+
+
+    public function print_process_check_list_re(Request $request,$id)
+    {
+
+ //
+ $check_list = DB::table('applications')
+ ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+ ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+ ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+ ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+ ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+ ->leftjoin('checklists','checklists.application_id','applications.application_id')
+ ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+ ->select('checklists.*','applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+ ->where('applications.application_id',$id)
+ ->orderBy('invoices.invoice_number','ASC')
+ ->get();
+
+$agent_contact_info = DB::table('agents')->where('agents.application_id',$id)
+          ->leftjoin('contacts', 'agents.application_id', '=', 'contacts.application_id')
+          ->where('contact_type','Agent')
+          ->get();
+
+$applicant_contact_info = DB::table('applications')->where('applications.application_id',$id)
+          ->leftjoin('contacts', 'applications.application_id', '=', 'contacts.application_id')
+          ->where('contact_type','Supplier')
+          ->get();
+
+$product_composition_info = DB::table('product_compositions')->where('product_compositions.application_id',$id)->get();
+
+$receipts_info = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+
+$api_manufacturers_info = DB::table('api_manufacturers')->where('api_manufacturers.application_id',$id)->get();
+
+
+$product_enlm_list = DB::table('applications')
+                 ->join('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                 ->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                 ->where('applications.application_id',$id)
+                 ->select('applications.*','medicines.*','medicinal_products.*')
+                 ->get();
+
+
+$dosage_forms = DB::table('medicinal_products')
+                 ->join('dosage_forms', 'dosage_forms.id', '=', 'medicinal_products.dosage_form_id')
+                 ->where('medicinal_products.dosage_form_id','=',$product_enlm_list[0]->dosage_form_id)
+                 ->select('dosage_forms.*','medicinal_products.*')
+                 ->get();
+
+$invoice_number = DB::table('invoices')->where('invoices.application_id',$id)->get();
+
+$receipts_number = DB::table('receipts')->where('receipts.application_id',$id)->get();
+
+foreach($check_list as $check_lists ) {break;}
+
+if( $check_lists->is_application_letter == 1)
+{   $route_name = 'checklist.print_checklist_re'; }
+else {
+$route_name = 'checklist.print_checklist_re';
+}
+
+
+return view($route_name,[
+     'check_list' => $check_list,
+     'agent_contact_info' => $agent_contact_info,
+     'product_composition_info' => $product_composition_info,
+     'api_manufacturers_info' => $api_manufacturers_info,
+     'product_enlm_list' => $product_enlm_list,
+     'receipts_info' => $receipts_info,
+     'dosage_forms' => $dosage_forms,
+     'applicant_contact_info' => $applicant_contact_info,
+     'invoice_number' => $invoice_number,
+     'receipts_number' =>$receipts_number,
+
+
+ ]);
+
+
+    }
+
 }

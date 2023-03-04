@@ -9,7 +9,7 @@ class invoices extends Model
 {
     use HasFactory;
     protected $table = 'invoices';
-    protected $guarded = ['cc'];
+    protected $guarded = [];
 
 
     

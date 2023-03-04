@@ -15,9 +15,9 @@ class TemplateController extends Controller
     public function create()
     {
 
-        $breadcrumb_title='Upload Templates';
-        $document_types=document_type::all();
-        return view('templates.create',['breadcrumb_title'=>$breadcrumb_title,'document_types'=>$document_types]);
+        $breadcrumb_title = 'Upload Templates';
+        $document_types = document_type::all();
+        return view('templates.create', ['breadcrumb_title' => $breadcrumb_title, 'document_types' => $document_types]);
 
     }
 
@@ -31,7 +31,7 @@ class TemplateController extends Controller
             $file = $request->file('input_file');
             //$the_file=$request->validate([
             //         'title' => 'required',
-            //         'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            //         'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:204800',
             //         'description' => 'required',
             //     ]);
 
@@ -60,7 +60,7 @@ class TemplateController extends Controller
             dd('can not upload');
         }
 
-        return Redirect()->back()->with('success', 'Record Inserted Successfully.' );
+        return Redirect()->back()->with('success', 'Record Inserted Successfully.');
     }
 
     // list all template documents
@@ -68,10 +68,9 @@ class TemplateController extends Controller
     {
 
 
-
-        $documents = template::join('document_types','document_types.id','templates.template_type')
-        ->select('templates.*','document_types.document_type')
-        ->get();
+        $documents = template::join('document_types', 'document_types.id', 'templates.template_type')
+            ->select('templates.*', 'document_types.document_type')
+            ->get();
         $breadcrumb_title = 'All Template Documents';
         return view('templates.index', ['documents' => $documents, 'breadcrumb_title' => $breadcrumb_title]);
 
@@ -96,59 +95,69 @@ class TemplateController extends Controller
     public function edit($id)
     {
 
-        $document = template::find($id);
+        $document = template::join('document_types','templates.template_type', 'document_types.id')
+            ->where('templates.id', $id)
+            ->select('templates.*', 'document_types.document_type')
+            ->first();
+
+        $document_types = document_type::all();
+
+
         $breadcrumb_title = 'Edit Document Details';
-        return view('templates.edit', ['document' => $document, 'breadcrumb_title' => $breadcrumb_title]);
+        return view('templates.edit', ['document' => $document, 'document_types' => $document_types, 'breadcrumb_title' => $breadcrumb_title]);
 
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
+
+        try {
+            // handle transactions automatically
+            DB::transaction(function () use ($request, $id) {
+
+                if ($request->file('input_file')) {
+
+                    $file = $request->file('input_file');
+                    //$the_file=$request->validate([
+                    //         'title' => 'required',
+                    //         'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:204800',
+                    //         'description' => 'required',
+                    //     ]);
 
 
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $dir = 'templates';
+                    $path = $dir . '/' . $filename;
 
-        if ($request->file('input_file')) {
+                    //remove the old file
+                    $document = template::find($id);
+                    unlink(public_path($document->path));
 
-            $file = $request->file('input_file');
-            //$the_file=$request->validate([
-            //         'title' => 'required',
-            //         'image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            //         'description' => 'required',
-            //     ]);
+                    //update template upload
+                    template::where('id', $id)->update([
+                        'ref_num' => $request->ref_num,
+                        'name' => $request->title,
+                        'path' => $path,
+                        'template_type' => $request->document_type,
+                        'description' => $request->description
+                    ]);
 
-            //$original_filename = $request->file('input_file')->getClientOriginalName();
-            //$extension = $request->file('input_file')->getClientOriginalExtension();
+                    // Upload file (copies file to destination)
+                    $path = $file->move($dir, $filename);
 
+                } else {
+                    dd('can not update');
+                }
 
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $dir = public_path('documents');
-            $path = $dir . '/' . $filename;
-
-            //remove the old file
-            $document = template::find($id);
-            unlink($document->path);
-
-            //update template upload
-            template::where('id',$id)->update([
-                'ref_num' => $request->ref_num,
-                'name' => $request->title,
-                'path' => $path,
-                'document_type' => $request->document_type,
-                'description' => $request->description
-            ]);
-
-            // Upload file (copies file to destination)
-            $path = $file->move($dir, $filename);
-
+            }); // end transaction
+        } catch (\Exception $e) {
+            return Redirect()->back()->with('danger', 'Problem with Updating Template. ERROR: ' . $e->getMessage());
         }
-        else {
-            dd('can not update');
-        }
-
-
 
         return Redirect()->back()->with('success', 'Record Updated Successfully.');
 
     }
+
     public function download($id)
     {
 

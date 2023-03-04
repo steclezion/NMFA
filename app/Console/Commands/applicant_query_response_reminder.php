@@ -136,7 +136,6 @@ class applicant_query_response_reminder extends Command
 
         Notification::send($user, new RemindersNotification($new_notification));
 
-        $message = $new_notification['type'].':'.$subject;
         event(new DossierEvaluationRemindersEvent($user->id, $message));
     }
 }

@@ -9,5 +9,5 @@ class api_manufacturers extends Model
 {
     use HasFactory;
     protected  $table = 'api_manufacturers';
-    protected $guarded = ['manu_api_response_tele'];
+    protected $guarded = [];
 }

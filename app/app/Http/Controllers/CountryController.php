@@ -30,6 +30,7 @@ class CountryController extends Controller
       public function forgotpassword(Request $request)
       {
 
+//dd($request->session()->all());
 
         $countries = Country::all();
         $forgotpassword_one = forgot_password_questions::where('Question_Type','1')->get();

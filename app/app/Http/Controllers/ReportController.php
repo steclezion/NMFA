@@ -130,7 +130,7 @@ class ReportController extends Controller
 //              <th>ID</th>
 //              <!--<th>ApplicationID</th>-->
 //              <th>Application Status</th>
-//              <th>Product Name</th>
+//              <th>Brand Name</th>
 //              <th>Supplier Name</th>
 //              <th>Supplier contact Name</th>
              
@@ -212,7 +212,7 @@ $i=1;
         }
        
 
-         $return_data_card.="<div class='card-body' style='display:block; background-color:orange' id='rendered_year_response'>
+         $return_data_card.="<div class='card-body' style='display:block;' id='rendered_year_response'>
          <h2> Applications received By Year-Range From  ".$request->From_Date_Year."  To  ".$request->To_Date_Year." </h2>
          <table id='example1' class='table table-bordered table-striped' >
            <thead><tr>
@@ -434,7 +434,7 @@ $i=1;
            <thead><tr>
              <th>ID</th>
              <!--<th>ApplicationID</th>-->
-             <th>Product Name</th>
+             <th>Brand Name</th>
              <th>Application Status</th>
              
              <th>Supplier Name</th>

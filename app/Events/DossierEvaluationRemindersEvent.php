@@ -14,32 +14,34 @@ class DossierEvaluationRemindersEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public  $userId;
-    public  $message;
+    private $userId;
+    public $message;
+
     /**
      * Create a new event instance.
      *
-     * @param $userId
-     * @param $message
+     * @return void
      */
     public function __construct($userId, $message)
     {
         $this->userId = $userId;
         $this->message = $message;
+
     }
 
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return Channel|array
+     * @return \Illuminate\Broadcasting\Channel|array
      */
     public function broadcastOn()
     {
         return new PrivateChannel("ReminderTo.{$this->userId}");
+
     }
 
     public function broadcastAs()
     {
-        return "reminder";
+        return "dossier_evaluation.nmfa_units_reminder";
     }
 }

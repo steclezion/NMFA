@@ -67,7 +67,7 @@ $number    = preg_match('@[0-9]@', $password);
 $specialChars = preg_match('@[^\w]@', $password);
 
 if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password) < 8) {
-    return response()->json(['Message'=>false,'result'=>"Password should be at least 8 characters in length and should include at least one upper case letter  one number and one special character."]);
+    return response()->json(['Message'=>false,'result'=>"Password should be at least 8 characters in length  <br> and should include at least one upper case letter, <br> one number and one special character."]);
 }else{
     
     return response()->json(['Message'=>true,'result'=>"Strong password" ]);
@@ -79,29 +79,16 @@ if(!$uppercase || !$lowercase || !$number || !$specialChars || strlen($password)
 
     protected function user_profile()
     {
-        /*return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);*/
+      
 
         $user = User::find(auth()->user()->id);
-
-        // $roles = Role::pluck('name','name')->all();
-
-        // $userRole = $user->roles->pluck('name','name')->all();
-
         $countries = Country::all()->sortBy('country_name');
-
-
         $countries_id = Country::pluck('country_name','id');
-
-
         $dataa = User::where('id', auth()->user()->id)->orderBy('id','ASC')->get();
 
         $user_upload_cv= User::join('documents','documents.id','users.upload_cv_id')
         ->select('documents.*','users.*','documents.name as dname','documents.created_at as uploaded_Date','documents.id as did')
-        ->where('users.id','=',Auth::user()->id)
+        ->where('users.id','=',auth()->user()->id)
         ->where('documents.document_type','=',15)
         ->get();
 
@@ -163,32 +150,53 @@ return view('userprofile.profile',compact('user','countries','countries_id','dat
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
+
     public function update_user(Request $request, $id)
     {
         //
-
+//dd( $request->all());
         $input =  $request->all();
-        
+      
  $this->validate($request, [
 
     'first_name' =>  'required',
-    'middle_name' => 'required',
+    //'middle_name' => 'required',
     'last_name' =>   'required',
     'email'      =>  'required|email|unique:users,email,'.$id,
     'password'   =>  'same:confirm_password',
+    'file' => 'mimes:JPG,PNG,GIF,SVG,jpg,png,jpeg,gif,svg,ico|max:204800',
 
       ]);
 
 $user_selected= User::where('id', auth()->user()->id)->orderBy('id','ASC')->first();
 
-
-
 if($input['password'] != '' && $input['password'] == $input['confirm_password'] )
 {
+
+    if($request->has('file')) {
+
+    $name = @$request->file('file')->getClientOriginalName();
+    $time=time();
+    $path = public_path('storage/avatar');
+    $fileName = $name.$time.".".$request->file('file')->extension();;
+    $filePath = $request->file('file')->storeAs('avatar', $fileName, 'public');
+
+    $input['avatar_path'] = 'storage/avatar/'.$fileName;
+    $input['avatar_path'] = $user_selected['avatar_path'];
     $input['password'] = Hash::make($input['password']);
     $user = User::find($id);
     $user->update($input);
     return redirect(route('user_profile'))-> with('success','Profile updated successfully!');
+    }
+    else
+    {
+        $input['password'] = Hash::make($input['password']);
+        $user = User::find($id);
+        $user->update($input);
+        return redirect(route('user_profile'))-> with('success','Profile updated successfully!');
+
+    }
     
 }
 
@@ -196,10 +204,28 @@ else
 
 {
 
+    if($request->has('file')) {
+
+    $name = @$request->file('file')->getClientOriginalName();
+    $time=time();
+    $path = public_path('storage/avatar');
+    $fileName = $name.$time.".".$request->file('file')->extension();;
+    $filePath = $request->file('file')->storeAs('avatar', $fileName, 'public');
+
+    $input['avatar_path'] = 'storage/avatar/'.$fileName;
     $input['password'] = $user_selected->password;
     $user = User::find($id);
     $user->update($input);
     return redirect(route('user_profile'))-> with('success','Profile updated successfully!');
+    }
+    else
+    {
+
+        $input['password'] = $user_selected->password;
+        $user = User::find($id);
+        $user->update($input);
+        return redirect(route('user_profile'))-> with('success','Profile updated successfully!');
+    }
 
 }
 

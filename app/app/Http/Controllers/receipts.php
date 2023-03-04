@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use \Mpdf\Mpdf as PDFF;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -73,11 +74,8 @@ class receipts extends Controller
 
     public function retrive_file_uploaded_to_applicant_financial_section(Request $request)
     {
-
-
-
-
-      $doc_retrive_app = receipt::join('documents','documents.id','receipts.upload_financial_notification_to_applicant')
+      
+    $doc_retrive_app = receipt::join('documents','documents.id','receipts.upload_financial_notification_to_applicant')
       ->select('documents.*','receipts.*','documents.name as dname','documents.created_at as uploaded_Date','documents.id as did')
       ->where('receipts.application_id','=',$request->application_id)
       ->where('documents.document_type','=',20)
@@ -115,20 +113,19 @@ public function rendered_html_data_custom($request)
   $path_footer = "images/nmfa_footer.png";
 
   $rendered_template  = 
-  "  
-  <!DOCTYPE html>
+  "<!DOCTYPE html>
   <html lang='en-US'>
       <head>
           <meta charset='utf-8'>
           <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
           <meta name='viewport' content='width=device-width, initial-scale=1'>
-     
-  
           <title>HTML 2 PDF</title>
+
+
           <style type='text/css'>
               .center {
                   text-align: center;
-              }
+                }
           </style>
       
       </head>
@@ -141,9 +138,7 @@ public function rendered_html_data_custom($request)
     <div class='row'>
       <div class='col-12' id='letter_acknowledgement'>
         <!-- Main content -->
-        <div class='container'>
-        <img src='$path_header'  class='img-responsive' style='width: 100%;height: auto;'  alt='image' height='140' width='800'/>
-      </div>
+ 
             <!-- /.col -->
           </div>
           <!-- info row -->
@@ -158,9 +153,9 @@ public function rendered_html_data_custom($request)
         
 <input type='hidden' value=' $request->application_id ' id='application_id' name='' />
   <span hidden> <i class='fas fa-globe'>  </i>  </span>
-  <small class='float-right' style='position: absolute;left: 80%; '>Date: $request->financial_notification_date_of_order </small>
+  <small class='float-right' style='position: absolute;left: 80%; '>Date: $request->current_date </small>
       <br>
-        <h2  style='position: absolute;left: 28%; ' > Financial Notification </h2>
+        <h2  style='text-align: center'  > Financial Notification </h2>
         </h4>
      </div>
 
@@ -173,27 +168,31 @@ public function rendered_html_data_custom($request)
 <!-- /.col -->
 </div>
 </div>
-<br><br> <br><br>     <br><br> <br><br>    <br><br>
+<br><br> 
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+.table {
+  table-layout: fixed;
+overflow-x:auto;
+position:absoute;left:15%;
+top:45%;border: 2px solid ;
+border: 1px solid black;
+tr:hover {background-color: #f5f5f5
+
+}
+</style>
+<p> The payment for registration fee has been completed successfully. The details of the payment is provided below. </p>
+
 $request->To_be_rendered
 <br>
 
-<p>
-Issued by: Iyassu Bahta,
-</p>
-<p>
-Director, National Medicines and Food Administration
-</p>
-<p>
-Cc: Head of finance, Ministry of Health, Eritrea
-
-</p>
 </div>
 <!-- /.col -->
 
 
-<div class='container'>
-<img src='$path_footer'  class='img-responsive' alt='image' style='width: 100%;height: auto;'/>     
-</div>  
+ 
 </p>        
             </div>
            
@@ -228,34 +227,79 @@ $time=time();
 $path = public_path('storage/Financial_Notification/Financial_client_side_un_sealed/');
 
 // <--- folder to store the pdf documents into the server;
-$fileName = "--"."Financial_Notification".$time."-".'.pdf' ; // <--giving the random filename,
-$pdf->save($path.$fileName);
+//$pdf->save($path.$fileName);
 
-$generated_pdf_link = Storage::url('public/Financial_Notification/Financial_client_side_un_sealed/'.$fileName);
+
+
+
+$rendered_html_data = $this->rendered_html_data_custom($request);
+$time=time();
+$file_name = "--"."Financial_Notification"."-".'.pdf' ; // <--giving the random filename,
+
+
+$uploaded_file_name = $time.$file_name;
+$document = new PDFF([ 'format'=>"A4", 'margin_header'=>"1", 'margin_top'=>"30", 'margin_bottom'=>"20", 'margin_footer'=>"2", ]);
+$header=['Content-Type'=> 'application/pdf','Content-Disposition'=>'inline: filename=""'];
+$document->SetHTMLHeader('<img src="images/nmfa_header.png" width="100%" height="100px"/>');
+$document->SetHTMLFooter('<img src="images/nmfa_footer.png" width="100%"/>');
+$document->WriteHTML($rendered_html_data);
+Storage::disk('Financial_Notification')->put($uploaded_file_name,$document->Output($uploaded_file_name,"S"));
+
+$generated_pdf_link = Storage::url('public/Financial_Notification/Financial_client_side_un_sealed/'.$uploaded_file_name);
+
+
+
+
+
 
 
 $documents = new documents;
-$documents->name =  $fileName;
+$documents->name =  $uploaded_file_name;
 $documents->path =  $generated_pdf_link ;
 $documents->document_type = '19';
-$documents->ref_num = $fileName;
+$documents->ref_num = $uploaded_file_name;
 $documents->description = 'Financial_client_side_un_sealed';
 $documents->save();
+
+$date=date_create($request->financial_notification_date_of_order); date_format($date,"Y-m-d");
+
+
+
+
+$application=applications::where('application_id',$request->application_id)->first();
+$duration_days = 100;
+$main_task = $this->get_main_task_id($application->id,'Application');
+$end_time =  date('Y-m-d H:i:s', strtotime('+ '.$duration_days.' days'));
+$issued_datetime = date('Y-m-d H:i:s');
+$task_category = 'Screening';
+$task_activity_title = 'Finicial Notification has been generated';
+$content_details = 'Finicial Notification number has been generated';
+$route_link = '';
+$activity_status = 'Finicial Notification saved';
+$uploaded_document_id = null;
+
+MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+$task_activity_title,
+$content_details,
+$route_link, $activity_status,
+$uploaded_document_id);
+
+
 
 
 $update_receipt_order_date= DB::table('receipts')
 ->where('application_id', $request->application_id)
 ->update([
-'financial_notification_date_order' => $request->financial_notification_date_of_order,
+'financial_notification_date_order' => $date,
 'financial_notification_flag' =>1,
 'upload_financial_notification_document_id' => $documents->id
 
 ]);
 
+
+
+
 //dd($request->application_id);
-
-
-
 
 return response()->json(['Message'=>true,'Download_Link'=>$documents->path ]);
 
@@ -266,33 +310,29 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path ]);
 public function financial_notification_generate(Request $request,$id)
   {
 
-
-$applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
-->join('medicinal_products','medicinal_products.application_id','applications.application_id')
+    $applications = applications::join('medicinal_products','medicinal_products.application_id','applications.application_id')
     ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
     ->join('contacts','contacts.application_id','applications.application_id')
     ->leftjoin('checklists','checklists.application_id','applications.application_id')
     ->leftjoin('receipts','receipts.application_id','applications.application_id')
+    ->leftjoin('invoices','invoices.application_id','applications.application_id')
     ->select('receipts.*','checklists.application_id as check_app','applications.application_id','receipts.receipt_number as rn',
     'medicinal_products.*','medicinal_products.product_trade_name as t_name',
     'company_suppliers.*','company_suppliers.trade_name as cs_tradename','applications.*',
     'contacts.*','contacts.first_name as cfirst_name','contacts.middle_name as cmiddle_name',
-    'applications.application_id as app_id',
-    DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname_contact'),
+    'applications.application_id as app_id', 'invoices.*','contacts.first_name as cfname','contacts.middle_name as cmname','contacts.last_name as clname',
+    DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname'),
     'contacts.last_name as clast_name')
     ->where('contacts.contact_type','=','Supplier')
     ->where('applications.assigned_To','=',auth()->user()->id)
+    ->where('applications.application_id','=',$id)
     ->get();
 
-//dd($id);
-   //return view('Financial_Notification.template_for_financial_notification');
 
-
-   
-   return view('Financial_Notification.template_for_financial_notification',
+return view('Financial_Notification.template_for_financial_notification',
    [
      'applications' =>  $applications,
-    'id'=>$id,
+      'id'=>$id,
     ]);
 
 
@@ -302,43 +342,26 @@ $applications = applications::join('manufacturers','manufacturers.application_id
 
      public function generating_financial_notifications(Request $request)
      {
-
-        // $data = DB::table('receipts')
-        // ->join('invoices','receipts.invoice_id','=','invoices.id')
-        // ->join('documents','receipts.invoice_document_id','=','documents.id')
-        // ->join('applications','applications.application_id','=','receipts.application_id')
-        // ->select('receipts.*','invoices.*','documents.*')
-        // ->whereNotNull('receipt_document_id')
-        // ->where('applications.assigned_To','=',auth()->user()->id)
-        //  ->get();
-
-
-
-         $data = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
-         ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
+         
+        $data = applications::join('medicinal_products','medicinal_products.application_id','applications.application_id')
          ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
          ->join('contacts','contacts.application_id','applications.application_id')
          ->leftjoin('checklists','checklists.application_id','applications.application_id')
          ->join('invoices','applications.application_id','=','invoices.application_id')
          ->join('receipts','applications.application_id','=','receipts.application_id')
+         ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
          ->leftjoin('documents', 'documents.id','=','receipts.upload_financial_notification_document_id')
-         ->select('documents.*','checklists.*','checklists.application_id as check_app','applications.application_id as app_id','invoices.*',
+         ->select('medicines.*','documents.*','checklists.*','checklists.application_id as check_app','applications.application_id as app_id',
+         'invoices.*',
          'receipts.*','medicinal_products.*','medicinal_products.product_trade_name as t_name','company_suppliers.*',
-         'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*','contacts.first_name as cfirst_name',
+         'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*','contacts.first_name as cfirst_name','company_suppliers.trade_name as cs_tradename',
          'contacts.middle_name as cmiddle_name','contacts.last_name as clast_name')
          ->where('contacts.contact_type','=','Supplier')
          ->whereNotNull('receipts.receipt_document_id')
          ->where('applications.assigned_To','=',auth()->user()->id)
          ->get();
 
-
-         
-       
-
-
-
-
-         return view('Financial_Notification.financial_notification',compact('data'));
+        return view('Financial_Notification.financial_notification',compact('data'));
 
 
      }
@@ -562,13 +585,14 @@ $applications = applications::join('manufacturers','manufacturers.application_id
 
   }
 
+
 public function upload_financial_document_applicant(Request $request)
 {
 
   try
   {
 $validatedData = $request->validate([
- 'file_Finance_notify' => 'required|mimes:pdf|max:2048',
+ 'file_Finance_notify' => 'required|mimes:pdf,docx,dotm,doc*|max:2048000000000',
  ]);
 
 
@@ -577,7 +601,7 @@ $validatedData = $request->validate([
  $path = public_path('storage/Financial_Notification/Financial_applicant_side_uploaded_sealed/');
  
  // <--- folder to store the pdf documents into the server;
- $fileName =  $name."-".$time.'.pdf' ; // <--giving the random filename,
+ $fileName =  $name."-".$time ; // <--giving the random filename,
  $filePath = $request->file('file_Finance_notify')->storeAs('Financial_Notification/Financial_applicant_side_uploaded_sealed/', $fileName, 'public');
  $generated_pdf_link = Storage::url('public/Financial_Notification/Financial_applicant_side_uploaded_sealed/'.$fileName);
  
@@ -693,8 +717,9 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
 
         try
         {
+
      $validatedData = $request->validate([
-       'file_ACK' => 'required|mimes:pdf|max:2048',
+       'file_ACK' => 'required|mimes:pdf,docx,dotm,dot,oxps,OXPS,DOCX,PDF|max:2048000000000000',
        ]);
     
    
@@ -822,17 +847,17 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
 
      public function upload_acknowledgment_receipt(Request $request)
 {
-
+//dd($request->all());
     try
     {
 
        $Acknowledgement_letter_receipt_registration = new application_receipt_of_registration;
        $Acknowledgement_letter_receipt_registration->application_id= $request->application_id;
        $Acknowledgement_letter_receipt_registration->Reference_number= $request->RL_squential_number;
-       $Acknowledgement_letter_receipt_registration->received_document_types= $request->document_received_types;
+       $Acknowledgement_letter_receipt_registration->received_document_types= '';
        $Acknowledgement_letter_receipt_registration->application_number= $request->application_number;
        $Acknowledgement_letter_receipt_registration->reference_letter_dated= $request->date_of_letter;
-       $Acknowledgement_letter_receipt_registration->No_of_DVDs_received= $request->dvd_received;
+       $Acknowledgement_letter_receipt_registration->No_of_DVDs_received= 10;
        $Application_receipt =  $Acknowledgement_letter_receipt_registration->save();
 
 
@@ -846,13 +871,35 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
  $number_squence= str_replace("/","_",$request->RL_squential_number);
  // <--- folder to store the pdf documents into the server;
  $fileName =  $number_squence."--"."Receipt_of_Registration".$time."-".'.pdf' ; // <--giving the random filename,
- $pdf->save($path . '/'.$fileName);
+ //$pdf->save($path . '/'.$fileName);
 
- $generated_pdf_link = Storage::url('public/Acknowledgement_Receipt_of_Registration_Application/saved_before_sealed/'.$fileName);
+
+
+ $rendered_html_data = $this->rendered_html_data($request);
+         $time=time();
+         $file_name = 'Ackowledgment_Receipt'.$number_squence."--"."Receipt_of_Registration".$time."-".'.pdf' ; // <--giving the random filename,
+         $uploaded_file_name = $file_name;
+
+         
+         $document = new PDFF([ 'format'=>"A4", 'margin_header'=>"1", 'margin_top'=>"30", 'margin_bottom'=>"20", 'margin_footer'=>"2", ]);
+         $header=['Content-Type'=> 'application/pdf','Content-Disposition'=>'inline: filename=""'];
+         $document->SetHTMLHeader('<img src="images/nmfa_header.png" width="100%" height="100px"/>');
+         $document->SetHTMLFooter('<img src="images/nmfa_footer.png" width="100%"/>');
+         $document->WriteHTML($rendered_html_data);
+         Storage::disk('Acknowledgement_Receipt_of_Registration_Application')->put($uploaded_file_name,$document->Output($uploaded_file_name,"S"));
+
+
+
+         $generated_pdf_link = Storage::url('public/Acknowledgement_Receipt_of_Registration_Application/saved_before_sealed/'.$uploaded_file_name);
+
+
+
+
+
 
 
     $documents = new documents;
-    $documents->name =  $fileName;
+    $documents->name =   $uploaded_file_name;
     $documents->path =  $generated_pdf_link ;
     $documents->document_type = '17';
     $documents->ref_num = $request->RL_squential_number;
@@ -903,110 +950,20 @@ public function rendered_html_data(Request $request)
         <div class='container-fluid'>
           <div class='row'>
             <div class='col-12' id='letter_acknowledgement'>
-       
-  
-  
-              <!-- Main content -->
+            <!-- Main content -->
               <div class='invoice p-3 mb-3'>
                 <!-- title row -->
                 <div class='row'>
                   <div class='col-12'>
-                    <h4>
-  
-  
-                  <div class='container'>
-                    <img src='$path_header'     alt='image' alt='image' height='80' width='690'/>
-                  </div>
-  
-                    </h4>
+                    <h4> </h4>
                   </div>
                   <!-- /.col -->
                 </div>
                 <!-- info row -->
     <div class='row invoice-info'>
-  
-  <input hidden id='application_id' value='$request->application_id' />
-  <div class='container'> 
-   
-    
-    <p class='list-group'>
-    <div class='panel panel-default'>
-  
-    <div class='panel-heading'  >Date: <span id='current_date'> $request->current_date </span> </div>
-    <br/>
-    <div class='panel-body'  >Ref: <span id='RL_squential_number'>  $request->RL_squential_number </span>  </div>
-    <br/>
-    <div class='panel-body'>
-   To: <span id='applicant_name'>  $request->applicant_name </span>  <br/>
-   <ul>
-      <li> <span id='state_plot_number'> $request->region_state  </span> </li> <br/>
-      <!-- <li> <span id='country'>  </span> </li>  </br> -->
-      <li> <span id='region_state'>$request->region_state   </span>  </li>    </br> 
-    </ul>
-  </div>
-  </div>
-    </p>
-   
-  <style>
-  p,block {
-      text-align: justify;
-  }
-  
-  
-  </style>
-       
-  <b> Subject: Acknowledgement of Receipt of Registration Application</b> 
-  <br/><br/>
-  <block style='text-align: justify;'>
-  <p>Dear Sir/Madam or  <span id='contact_person_name'> $request->contact_person_name </span> ,</p>
-  <br/>
-  This is to acknowledge receipt of your application for registration of a medicine in reference to your 
-  letter dated   $request->date_of_letter. 
-  The application number for the below product is  <b> <span id='application_number'>  $request->application_number  </span> </b>.
-  <br><br>
-  <p>
-  Product Name: <span id='p_n'> $request->p_n  </span>
-  <br><br>
-  Documents received:
-  </p>
-  
-  <ul>
-
-  $request->document_received_types
-
-  </ul>
-  <br>
-  <p>   No. of DVDs received:  $request->dvd_received    </p>
-  
-  </block>
-  <br/><br/>
-  <p> Best regards,  </p>
-  
-  Iyassu Bahta
-  Director, National Medicines and Food Administration
-  <br>
-  Ministry of Health
-  <br>
-  Asmara, Eritrea
-  <br> <br><br>
-  </div>
-  
-  <br><br><br>
-      <p>
-      <div class='container'>
-  <img src='$path_footer'  class='img-responsive' alt='image' style='width: 100%;height: auto;'/>     
-  </div>  
-  </p>        
-                  </div>
-                 
-  
-                  </div>
-                  <!-- /.col -->
-                </div>
-  
-                   </div>
-          </div>
-          </form>
+$request->template_redesigned
+   </div>
+    </form>
       </div>
   </div>
       </section>";
@@ -1030,9 +987,11 @@ return $rendered_html_data;
              ->join('invoices','receipts.invoice_id','=','invoices.id')
              ->join('documents','receipts.invoice_document_id','=','documents.id')
              ->join('applications','applications.application_id','=','receipts.application_id')
-             ->select('receipts.*','invoices.*','documents.*')
+             ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+             ->select('receipts.*','invoices.*','documents.*','company_suppliers.trade_name as cs_tradename')
              ->whereNull('receipt_document_id')
              ->where('applications.assigned_To','=',auth()->user()->id)
+       
               ->get();
 
 
@@ -1043,11 +1002,11 @@ return $rendered_html_data;
            
 $btn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->invoice_number.'"  
 
-data-original-title="Edit" class="edit btn btn-warning  
+data-original-title="Edit" class="edit btn btn-primary 
 
 btn-sm editReceipt" title="Upload Receipt File"> 
 
-<i class="fas fa-money-check-alt"> </i> 
+<i class="fas fa-upload"> </i> 
 </a>
 <br>';
            
@@ -1056,10 +1015,67 @@ btn-sm editReceipt" title="Upload Receipt File">
                     return $btn;
 
                             })
-                            ->rawColumns(['action'])
+                            ->addColumn('product_name', function($row)
+                            {
+                              
+                            $check_list = DB::table('applications')
+                            ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+                            ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                            ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+                            ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+                            ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                            ->leftjoin('checklists','checklists.application_id','applications.application_id')
+                            ->leftjoin('contacts','contacts.application_id','applications.application_id')
+                            ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+                            ->select('application_receipt_of_registrations.*','checklists.*',
+                             DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname_contact'),
+                            'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
+                             'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+                            ->where('applications.application_id',$row->application_id)
+                            ->where('contacts.contact_type','Supplier')
+                            ->orderBy('invoices.invoice_number','ASC')
+                            ->first();
+
+                            return   $check_list->product_name ;
+                            })
+                         
+
+
+                           ->addColumn('product_trade_name', function($row)
+                            {
+                              
+                            $check_list = DB::table('applications')
+                            ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+                            ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                            ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+                            ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+                            ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                            ->leftjoin('checklists','checklists.application_id','applications.application_id')
+                            ->leftjoin('contacts','contacts.application_id','applications.application_id')
+                            ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+                            ->select('application_receipt_of_registrations.*','checklists.*',
+                             DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname_contact'),
+                            'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
+                             'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+                            ->where('applications.application_id',$row->application_id)
+                            ->where('contacts.contact_type','Supplier')
+                            ->orderBy('invoices.invoice_number','ASC')
+                            ->first();
+
+                            return   $check_list->product_trade_name;
+                            })
+                            
+                            ->rawColumns(['action','product_trade_name','product_name'])
                             ->make(true);
+                            
         }
               
+
+
+
+
+
+
                 return view('receipts.reciepts');
     }
     /**
@@ -1094,14 +1110,21 @@ btn-sm editReceipt" title="Upload Receipt File">
              ->join('invoices','receipts.invoice_id','=','invoices.id')
              ->join('documents','receipts.receipt_document_id','=','documents.id')
              ->join('applications','applications.application_id','=','receipts.application_id')
-             ->select('receipts.*','invoices.*','documents.*')
+             ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+             ->select('receipts.*','invoices.*','documents.*','company_suppliers.trade_name as cs_tradename')
              ->whereNotNull('receipt_document_id')
              ->where('applications.assigned_To','=',auth()->user()->id)
+             // ->offset(2)
+              // ->limit(12)
             //  ->where('documents.document_type','=',9)
               ->get();
 
+              //dd($data);
 
-return Datatables::of($data)->addIndexColumn()->addColumn('action', function($row){
+return Datatables::of($data)->addIndexColumn()->
+
+
+addColumn('action', function($row){
 
 
 
@@ -1159,88 +1182,70 @@ $application_receipt_of_registration = DB::table('application_receipt_of_registr
 
 
 
-$btn = '<a href="'.$row->path.'" title="Download Receipt File" class="edit btn btn-info btn-sm"><i class="fas fa-eye"> </i></a><br>';
-
-if(@$application_receipt_of_registration[0]->application_number == ''  )
-
-{
-
-
-$btn = $btn.'<br><a href="javascript:void(0)" data-toggle="tooltip"  
-data-id="'.$row->application_id.'" 
-data-sequence_number="'.$squential_Reference_number.'" 
-data-street_plot_number = "'.$check_list[0]->address_line_one.' '.$check_list[0]->address_line_two.'"
-data-region_state= "'.$check_list[0]->mstate.'"
-data-contact_person = "'.$check_list[0]->fullname_contact.'"
-data-application_number = "'.$check_list[0]->application_number.'"
-data-p_n =  "'.$check_list[0]->product_name.''.$dosage_forms[0]->name.' ,'.$check_list[0]->product_trade_name.'"
-data-list_received_documents = "'.$check_list[0]->received_document_types.'"
-title="Acknowledgement Receipt of Registration" class="btn btn-warning btn-sm receipt_register"> <i class="fas fa-pencil-square"> </i></a><br>';
-}
-else
-{
-
-
-    $doc_upload_ack = application_receipt_of_registration::join('documents','documents.id','application_receipt_of_registrations.uploaded_to_applicant')
-   ->select('documents.*','application_receipt_of_registrations.*','documents.name as dname','documents.created_at as uploaded_Date','documents.id as did')
-   ->where('application_receipt_of_registrations.application_id','=',$row->application_id)
-   ->where('documents.document_type','=',18)
-   ->get();
-
-   //dd( $issue_queries);
-
-   
-   $i=1;   $return_data='';
-
-   foreach($doc_upload_ack as $user_upload)
-          
-   {
-   $return_data .= "<tr><td>".$i++."</td>";
-   $return_data .= "<td id='seqence_number_$user_upload->id' >
-   
-   <a  href='".$user_upload->path."' style='display:block'   title='Acknowledgment receipt of Application Registration '   id='Download_File' >   ".$user_upload->dname."</a>
-
-   
-   </td>";
-   $return_data .= "<td>".$user_upload->uploaded_Date."</td>";
-
-   $return_data .= "<td> <a href='javascript:void(0)' data-toggle='tooltip' id='query'
-   data-document_id='$user_upload->did' 
-   data-id='$row->application_id' 
-    data-original-title='delete'  class='delete btn btn-danger btn-sm deleteFile'> <i class='fas fa-trash'></i> Remove </a></td>";    
-   }
-
-
-
-    $path = DB::table('application_receipt_of_registrations')
-                          ->join('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
-                           ->where('application_receipt_of_registrations.application_id','=',$row->application_id)
-                            ->select('application_receipt_of_registrations.*','documents.*')
-                            ->get();
-
-
-
-    $btn= $btn.'<br> <a href="javascript:void(0)" 
-    data-id="'.$row->application_id.'" 
-    data-path="'.$path[0]->path.'" 
-    data-return_data="'.$return_data.'"
-    data-document_id="'.$path[0]->document_id.'"
-    data-toggle="tooltip"
-    title="upload Receipt File" class="edit btn btn-success btn-sm upload_receipt_register">
-    <i class="fas fa-file-upload"> </i></a><br>';
-
-}
-
-
-//$btn = $btn.'<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteBook">Delete</a>';
-           
-
+$btn = '<a href="'.$row->path.'" title="Download Receipt File" class="edit btn btn-success btn-sm"><i class="fas fa-download"> </i></a><br>';
 
              return $btn;
                         
             })
-                            ->rawColumns(['action'])
+                          
+
+
+                            ->addColumn('product_name', function($row)
+                            {
+                              
+                            $check_list = DB::table('applications')
+                            ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+                            ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                            ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+                            ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+                            ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                            ->leftjoin('checklists','checklists.application_id','applications.application_id')
+                            ->leftjoin('contacts','contacts.application_id','applications.application_id')
+                            ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+                            ->select('application_receipt_of_registrations.*','checklists.*',
+                             DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname_contact'),
+                            'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
+                             'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+                            ->where('applications.application_id',$row->application_id)
+                            ->where('contacts.contact_type','Supplier')
+                            ->orderBy('invoices.invoice_number','ASC')
+                            ->first();
+
+                            return   $check_list->product_name ;
+                            })
+                         
+
+
+                           ->addColumn('product_trade_name', function($row)
+                            {
+                              
+                            $check_list = DB::table('applications')
+                            ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
+                            ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
+                            ->leftjoin('company_suppliers','applications.application_id','=','company_suppliers.application_id')
+                            ->leftjoin('invoices','applications.application_id','=','invoices.application_id')
+                            ->leftjoin('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+                            ->leftjoin('checklists','checklists.application_id','applications.application_id')
+                            ->leftjoin('contacts','contacts.application_id','applications.application_id')
+                            ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+                            ->select('application_receipt_of_registrations.*','checklists.*',
+                             DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname_contact'),
+                            'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
+                             'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
+                            ->where('applications.application_id',$row->application_id)
+                            ->where('contacts.contact_type','Supplier')
+                            ->orderBy('invoices.invoice_number','ASC')
+                            ->first();
+
+                            return   $check_list->product_trade_name;
+                            })
+                            
+                            ->rawColumns(['action','product_trade_name','product_name'])
                             ->make(true);
+
+
+
+
         }
               
                 return view('receipts.receipts_received');
@@ -1267,10 +1272,10 @@ else
               ->get();
 
 
-return Datatables::of($data)->addIndexColumn()->addColumn('action', function($row){
+return Datatables::of($data)->addIndexColumn()->
 
-
-
+addColumn('action', function($row)
+{
 $check_list = DB::table('applications')
 ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
 ->leftjoin('medicinal_products', 'applications.application_id', '=', 'medicinal_products.application_id')
@@ -1281,7 +1286,7 @@ $check_list = DB::table('applications')
 ->leftjoin('contacts','contacts.application_id','applications.application_id')
 ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
 ->select('application_receipt_of_registrations.*','checklists.*',
- DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname_contact'),
+ DB::raw('concat(contacts.first_name,"  ",contacts.last_name) as fullname_contact'),
 'manufacturers.state as mstate', 'applications.*','invoices.*','contacts.*', 'medicines.product_name','medicinal_products.product_trade_name', 
  'manufacturers.name as manufacturer_name','company_suppliers.trade_name','invoices.invoice_number','invoices.remark','invoices.amount')
 ->where('applications.application_id',$row->application_id)
@@ -1405,7 +1410,9 @@ else
             })
                             ->rawColumns(['action'])
                             ->make(true);
-        }
+
+
+                                   }
               
 
               
@@ -1417,16 +1424,13 @@ else
 
     public function store(Request $req )
     { 
-        $selected_invoice = DB::table('invoices')
-         ->where('invoice_number', $req->invoice_number)
-        ->get();
-
-   
-      $path = $req->file->path();
-      $extension = $req->file->extension();
+        $selected_invoice = DB::table('invoices')->where('invoice_number', $req->invoice_number)->get();
+        
+        $path = $req->file->path();
+        $extension = $req->file->extension();
 
        $req->validate([
-        'file' => 'required|mimes:pdf,csv,txt,xlx,xls,pdf|max:2048'
+        'file' => 'required|mimes:pdf,csv,txt,xlx,xls,pdf,doc,docx|max:204800000000'
         ]);
 
         $fileModel = new  receipt;
@@ -1436,11 +1440,10 @@ else
             $inv_num = str_replace("/", "_",  $req->invoice_number);
 
             // $fileName = $inv_num.'_'.'Receipt'->getClientOriginalName();
-            
-            $fileName = $inv_num.'_'.'Receipt.pdf';
-            $filePath = $req->file('file')->storeAs('Collected_Receipt_PDFS', $fileName, 'public');
+             $fileName = $inv_num.'_'.time().'_'.'Receipt.pdf';
+             $filePath = $req->file('file')->storeAs('Collected_Receipt_PDFS', $fileName, 'public');
 
-           $fileModel->name = time().'_'.$req->file;
+            $fileModel->name = time().'_'.$req->file;
             $fileModel->file_path = '/storage/' . $filePath;
 
 
@@ -1452,16 +1455,37 @@ else
             $documents->description = $req->description;
             $documents->save();
 
+    $select_document_id = DB::table('documents')->where('name', $fileName)->get();
+
+    $affected_receipts = DB::table('receipts')
+            ->where('invoice_id', $selected_invoice[0]->id)
+            ->update([
+            'receipt_number' => $req->receipt_number,
+            'Receipt_Date' => $req->receipt_data,
+            'description' => $req->description,
+            'receipt_document_id' =>  $select_document_id[0]->id,
+            ]);
+//dd($selected_invoice[0]->id);
+
+$affected_application_payment_Status = DB::table('applications')
+        ->where('application_id', $selected_invoice[0]->application_id)
+        ->update(
+          [
+        'payment_status' => '1',
+          ]);
+
+
+
            
 
             $Get_user_id = DB::table('receipts')
             ->join('invoices','receipts.invoice_id','=','invoices.id')
             ->join('applications','applications.application_id','=','receipts.application_id')
             ->select('applications.*')
-          
             ->where('invoices.invoice_number','=',$req->invoice_number)
              ->first();
-             //dd($Get_user_id );
+
+            // dd($Get_user_id );
 
              $user=User::where('id',$Get_user_id->user_id)->first();
 
@@ -1482,36 +1506,48 @@ else
             
 
 
-            $select_document_id = DB::table('documents')
-                    ->where('name', $fileName)
-                     ->get();
+            $selected_invoice = DB::table('invoices')->where('invoice_number', $req->invoice_number)->first();
+
+            $application=applications::where('application_id',$selected_invoice->application_id)->first();
+            $duration_days = 100;
+            $main_task = $this->get_main_task_id($application->id,'Application');
+            $end_time =  date('Y-m-d H:i:s', strtotime('+ '.$duration_days.' days'));
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Screening';
+            $task_activity_title = 'Receipt file has been accepted';
+            $content_details = 'Receipt file has been accepted and receipt reference number has been saved';
+            $route_link = '';
+            $activity_status = 'Receipt file has been saved';
+            $uploaded_document_id = null;
+            
+            MainTaskController::insertActivity($main_task->id, $issued_datetime, $end_time,$task_category,
+            $task_activity_title,
+            $content_details,
+            $route_link, $activity_status,
+            $uploaded_document_id);
 
 
-
-
-           $affected_receipts = DB::table('receipts')
-            ->where('invoice_id', $selected_invoice[0]->id)
-            ->update([
-            'receipt_number' => $req->receipt_number,
-            'Receipt_Date' => $req->receipt_data,
-            'description' => $req->description,
-            'receipt_document_id' =>  $select_document_id[0]->id,
-                
-                ]);
-
-
-                $affected_application_payment_Status = DB::table('applications')
-                ->where('application_id', $selected_invoice[0]->application_id)
-                ->update([
-                'payment_status' => '1',
-                   ]);
-
-
-           return back()
+           //return back()
+           return redirect()->route('receipts.received')
             ->with('success','File has been uploaded.')
             ->with('file', $fileName);
         }
     }
+
+
+    private function get_main_task_id($application_id, $related_type = 'Application')
+    {
+        $main_task = MainTask::where('related_id', $application_id)
+            ->where('related_task', $related_type)
+            ->first();
+        if ($main_task) {
+            return $main_task;
+        } else {
+
+            return 0; //means false
+        }
+    }
+
 
     /**
      * Display the specified resource.

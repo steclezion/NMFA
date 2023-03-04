@@ -113,10 +113,9 @@ return view('Timeline.Applicant.Timeline_applicant',['tasks'=>$tasks]);
     $i=1;$return_data='';
     $applications  =   applications::join('medicinal_products','medicinal_products.application_id','applications.application_id')
     ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
-    ->join('users','users.id','applications.user_id')
-   ->join('contacts','contacts.application_id','applications.application_id')
-    ->select('applications.*','applications.id as appid',
-    DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname'),
+->join('users','users.id','applications.user_id')
+->join('contacts','contacts.application_id','applications.application_id')
+->select('applications.*','applications.id as appid',DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname'),
     'medicinal_products.*','medicinal_products.product_trade_name as t_name','company_suppliers.*',
     'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*',
     'contacts.first_name as cfirst_name','contacts.middle_name as cmiddle_name',
@@ -148,6 +147,14 @@ return view('Timeline.Applicant.Timeline_applicant',['tasks'=>$tasks]);
    }
 
 
+   if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+
+
+
+
+
 
 
     $assinged_By = $assinged_By_full_Name[0]->first_name." ".$assinged_By_full_Name[0]->middle_name." ".$assinged_By_full_Name[0]->last_name;
@@ -155,9 +162,9 @@ return view('Timeline.Applicant.Timeline_applicant',['tasks'=>$tasks]);
     $return_data .= "<tr><td>".$i++."</td>";
     $return_data .= "<td>".$row->application_number."</td>";
 //    $return_data .= "<td>".$row->application_status."</td>";
-   $return_data .= "<td>".$status."</td>";
+$return_data .= "<td><span class='$badge'> $row->application_status</span></td>";
    $return_data .= "<td>".$row->t_name ."</td>";
-   $return_data .= "<td>".$row->cfirst_name." ".$row->cmiddle_name." ".$row->clast_name."</td>";
+   $return_data .= "<td>".$row->cs_tradename."</td>";
    $return_data .= "<td>".$assinged_To."</td>";
    $return_data .= "<td>".$assinged_By."</td>";
    $return_data .= "<td>".$row->Assginment_Date."</td>";
@@ -217,11 +224,12 @@ return view('Timeline.Supervisor.Timeline_supervisor',['tasks'=>$tasks]);
     $return_data='';   $i=1;
 
     $applications  =   applications::join('medicinal_products','medicinal_products.application_id','applications.application_id')
+    ->leftjoin('medicines','medicinal_products.medicine_id','medicines.id')
     ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
     ->join('users','users.id','applications.user_id')
-   ->join('contacts','contacts.application_id','applications.application_id')
-    ->select('applications.*','applications.id as appid',
-    DB::raw('concat(contacts.first_name," ",contacts.middle_name," ",contacts.last_name) as fullname'),
+    ->join('contacts','contacts.application_id','applications.application_id')
+    ->select('applications.*','applications.id as appid','medicines.product_name as med_name',
+     DB::raw('concat(contacts.first_name," ",contacts.last_name) as fullname'),
     'medicinal_products.*','medicinal_products.product_trade_name as t_name','company_suppliers.*',
     'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*',
     'contacts.first_name as cfirst_name','contacts.middle_name as cmiddle_name',
@@ -250,8 +258,16 @@ return view('Timeline.Supervisor.Timeline_supervisor',['tasks'=>$tasks]);
     if($row->payment_status == 0)
    { $status = "<span  title='shows:Application needs to be completed' class='badge badge-warning bg-blue-100' <i   class='fas fa-ruler'>Pending</i>  </span>";
    }else
-   { $status = "<span  title='shows:Application is completed ' class='badge badge-success bg-blue-100' <i   class='fas fa-ruler'>Completed</i>  </span>";
+   { $status = "<span  title='shows:Application is completed ' class='badge badge-success bg-blue-100' <i   class='fas fa-ruler'>$row->application_status</i>  </span>";
    }
+
+
+
+if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+
+
 
 
 
@@ -260,9 +276,10 @@ return view('Timeline.Supervisor.Timeline_supervisor',['tasks'=>$tasks]);
     $return_data .= "<tr><td>".$i++."</td>";
     $return_data .= "<td>".$row->application_number."</td>";
 //    $return_data .= "<td>".$row->application_status."</td>";
-   $return_data .= "<td>".$status."</td>";
-   $return_data .= "<td>".$row->t_name ."</td>";
-   $return_data .= "<td>".$row->cfirst_name." ".$row->cmiddle_name." ".$row->clast_name."</td>";
+   $return_data .= "<td><span class='$badge'> $row->application_status</span></td>";
+   $return_data .= "<td>".$row->med_name ."</td>";
+   $return_data .= "<td>".$row->product_trade_name."</td>";
+   $return_data .= "<td>".$row->cs_tradename."</td>";
    $return_data .= "<td>".$assinged_To."</td>";
    $return_data .= "<td>".$assinged_By."</td>";
    $return_data .= "<td>".$row->Assginment_Date."</td>";

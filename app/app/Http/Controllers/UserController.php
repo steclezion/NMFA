@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+
 use App\Models\documents;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
@@ -90,18 +91,20 @@ class UserController extends Controller
         {
 
         $validatedData = $request->validate([
-       'file' => 'required|mimes:pdf|max:2048',
+       'file' => 'required|mimes:pdf,docx,doc|max:204800',
        ]);
     
    
-       $name = $request->file('file')->getClientOriginalName();
+      // $name = $request->file('file')->getClientOriginalName();
+      $name = 'Curiclum vitae File'."-".auth()->user()->first_name."-".auth()->user()->middle_name."-".auth()->user()->last_name;
        $time=time();
        $path = public_path('Storage/UploadCv/');
 
        
        
        // <--- folder to store the pdf documents into the server;
-       $fileName =  $name."-".$time.'.pdf' ; // <--giving the random filename,
+       $fileName =  $name."-".$time.".".$request->file('file')->extension();
+         // <--giving the random filename,
        $filePath = $request->file('file')->storeAs('UploadCv/', $fileName, 'public');
        $generated_pdf_link = Storage::url('public/UploadCv/'.$fileName);
 
@@ -142,11 +145,14 @@ class UserController extends Controller
           
    {
    $return_data .= "<tr><td>".$i++."</td>";
-   $return_data .="<td id='seqence_number_$user_upload->id' > <a  href='".$user_upload->path."' style='display:block'  target='_blank'  title='My profile Data/Uploaded Cc'   id='Download_File' >   ".$user_upload->dname."</a></td>";
+   $return_data .="<td id='seqence_number_$user_upload->id' > <a  href='".$user_upload->path."' style='display:block'  target='_blank'  
+   
+   title='Uploaded CV'   id='Download_File' >   ".$user_upload->dname."</a></td>";
    $return_data .= "<td>".$user_upload->uploaded_Date."</td>";
 
    $return_data .= "<td> <a href='javascript:void(0)' data-toggle='tooltip' id='query'
    data-id='$user_upload->did' 
+   title='Delete CV' 
     data-original-title='Edit'  class='edit btn btn-danger btn-sm deletequery'> <i class='fas fa-trash'></i> Remove </a></td>";    
    }
 
@@ -195,11 +201,14 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
 
     public function forgot_password(Request $request)
     {
-
+        
 
         try
         {
-         $request->session()->put('user_id', $request->user_id);
+
+        
+
+
         $user_email_id =  DB::select('select * from  users  where email = ?', [$request->email]);
               
         if(empty($user_email_id[0]->email)){
@@ -210,7 +219,10 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
         }
 
         else
-       { return redirect(route('forgot_password_with_verification'))->with('message',$user_email_id[0]->id);
+       { 
+          
+        $request->session()->put('user_id', $user_email_id[0]->id);
+        return redirect(route('forgot_password_with_verification'))->with('message',$user_email_id[0]->id);
        }
 
      
@@ -261,6 +273,7 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
         $input = $request->all();
 
         $input['password'] = Hash::make($input['password']);
+                         
 
 
 
@@ -451,12 +464,14 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
           
    {
    $return_data .= "<tr><td>".$i++."</td>";
-   $return_data .="<td id='seqence_number_$user_upload->id' > <a  href='".$user_upload->path."' style='display:block'   target='_blank' title='My profile Data/Uploaded Cc'   id='Download_File' >   ".$user_upload->dname."</a></td>";
+   $return_data .="<td id='seqence_number_$user_upload->id' > <a  href='".$user_upload->path."' style='display:block'   target='_blank'
+    title='Uploaded CV'   id='Download_File' >   ".$user_upload->dname."</a></td>";
 
    $return_data .= "<td>".$user_upload->uploaded_Date."</td>";
 
    $return_data .= "<td> <a href='javascript:void(0)' data-toggle='tooltip' id='query'
     data-id='$user_upload->did' 
+    title='Delete CV'
     data-original-title='Edit'  class='edit btn btn-danger btn-sm deletequery'> <i class='fas fa-trash'></i> Remove </a></td>";    
    }
 
@@ -520,11 +535,13 @@ $user_upload_cv= User::join('documents','documents.id','users.upload_cv_id')
             
      {
      $return_data .= "<tr><td>".$i++."</td>";
-     $return_data .="<td id='seqence_number_$user_upload->id' > <a target='_blank'  href='".$user_upload->path."' style='display:block'   title='My profile Data/Uploaded Cc'   id='Download_File' >   ".$user_upload->dname."</a></td>";
+     $return_data .="<td id='seqence_number_$user_upload->id' > <a target='_blank'  href='".$user_upload->path."' style='display:block' 
+       title='Uploaded CV'   id='Download_File' >   ".$user_upload->dname."</a></td>";
      $return_data .= "<td>".$user_upload->uploaded_Date."</td>";
   
      $return_data .= "<td> <a href='javascript:void(0)' data-toggle='tooltip' id='query'
       data-id='$user_upload->id' 
+      title='Delete CV'
       data-original-title='Edit'  class='edit btn btn-danger btn-sm deletequery'> <i class='fas fa-trash'></i> Remove </a></td>";    
      }
   
@@ -543,12 +560,13 @@ $user_upload_cv= User::join('documents','documents.id','users.upload_cv_id')
 public function forgotpassword_verification(Request $request)
 {
 
-    $request->session()->put('user_id', $request->user_id);
-    //dd($request->all());
+    //$request->session()->put('user_id', $request->user_id);
+    $userid= $request->session()->get('user_id');
+    //dd($request->session()->all());
    $count = 0;
 
-    @$user_forgot_password_page =  DB::select('select * from  user_forgot_password_answer_questions  where user_id = ?', [$request->user_id]  );
-    @$user_forgot_password_email =  DB::select('select * from  users  where id = ?', [$request->user_id]  );
+    @$user_forgot_password_page =  DB::select('select * from  user_forgot_password_answer_questions  where user_id = ?', [$userid]  );
+    @$user_forgot_password_email =  DB::select('select * from  users  where id = ?', [ $userid]  );
 
    // dd(@$user_forgot_password_page);
 
@@ -579,7 +597,7 @@ return redirect(route('user.forgot_password_confirmation_page'))->with('message'
 
 else
 {
-return redirect()->route('forgot_password_with_verification')->withErrors(['email' => 'Your entry do not match with the previous record of your registry!!','message'=>$request->user_id]);
+return redirect()->route('forgot_password_with_verification')->withErrors(['email' => 'Your entry does not match with the previous record.','message'=>$request->user_id]);
 
 }
 
@@ -603,10 +621,16 @@ public function forgot_password_confirmation(Request $request)
 {
     
     //dd($request->session()->all());
-    
-$request['password'] = Hash::make($request['password']);
+    $userid= $request->session()->get('user_id');
+   
+
+//$request['password'] = Hash::make($request['password']);
+$request['password'] = bcrypt($request['password']);
+
+
+
 $update_users_table= DB::table('users')
-->where('id', $request->user_id)
+->where('id', $userid)
 ->update(
   [
   'password'=>$request->password,
@@ -614,7 +638,7 @@ $update_users_table= DB::table('users')
 );
 
       
-return redirect( route('user.forgot_password_congratulations_page'))->with('message','Congratulations password changed Successfully!!');
+return redirect( route('user.forgot_password_congratulations_page'))->with('message','Congratulations your password has been changed successfully!!');
 
 
 }

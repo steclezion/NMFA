@@ -46,18 +46,25 @@ class DossierSectionAssigController extends Controller
     }
     public function index()
     {
-        //
-        $section_assigns =dossier_section_assignment::join('users','dossier_section_assignments.section_from_user_id','users.id')
-        ->join('uploaded_documents','uploaded_documents.id','dossier_section_assignments.sent_document_id')
-            ->select(
-                'users.first_name',
-                'dossier_section_assignments.*',
-                'uploaded_documents.path'
-            )
-            ->where('dossier_section_assignments.section_to_user_id',auth()->user()->id)
-            ->where('dossier_section_assignments.status','!=','Evaluated')
-            ->orderByDesc('dossier_section_assignments.id')
-            ->get();
+        $section_assigns = dossier_section_assignment::join('dossiers', 'dossiers.id', 'dossier_section_assignments.dossier_id')
+                ->join('users','dossier_section_assignments.section_from_user_id','users.id')
+                ->join('dossier_assignments', 'dossier_assignments.dossier_id', 'dossiers.id')
+                ->join('applications', 'applications.id', 'dossier_assignments.application_id')
+                ->join('medicinal_products', 'medicinal_products.id', 'applications.medical_product_id')
+                ->join('medicines', 'medicines.id', 'medicinal_products.medicine_id')
+                ->join('company_suppliers', 'company_suppliers.id', 'applications.company_supplier_id')
+                ->join('uploaded_documents','uploaded_documents.id','dossier_section_assignments.sent_document_id')
+                ->select(
+                    'users.first_name', 'users.middle_name', 'users.last_name',
+                    'dossier_section_assignments.*',
+                    'uploaded_documents.path',
+                    'medicines.product_name', 'medicinal_products.product_trade_name', 'company_suppliers.trade_name as company_name'
+                )
+                ->where('dossier_section_assignments.section_to_user_id', auth()->user()->id)
+                ->where('dossier_section_assignments.status','!=','Completed')
+                ->orderByDesc('dossier_section_assignments.id')
+                ->get();
+
             $breadcrumb_title='Dossier Section Assignment';
             return view('dossier_section_assignment.index',['section_assigns'=>$section_assigns,'breadcrumb_title'=>$breadcrumb_title]);
 
@@ -135,13 +142,13 @@ class DossierSectionAssigController extends Controller
             $uploaded_document->save();
 
             $dossier_section_assignment = dossier_section_assignment::find($assigned_section_id);
-            $current_date=date('Y-m-d H:i:s', strtotime('-3'));
+            $current_date=date('Y-m-d H:i:s');
             dossier_section_assignment::where('id',$assigned_section_id)
                 ->update(
                     [
                         'section_received_date'=>$current_date,
                         'received_document_id'=>$uploaded_document->id,
-                        'status'=>'Evaluated',
+                        'status'=>'Completed',
                         'response_description'=>$description
                     ]
 
@@ -151,12 +158,12 @@ class DossierSectionAssigController extends Controller
             //update activity for timeline
             $main_task = $this->get_main_task_id($dossier_assignment_id);
             $end_time = date('Y-m-d H:i:s', strtotime('+ 30 days'));
-            $issued_datetime = date('Y-m-d H:i:s', strtotime('-3'));
-            $task_category = 'Dossier Section Evalutaion Respones Uploaded';
-            $task_activity_title = 'Dossier Section Assignment By '.auth()->user()->first_name.' '.auth()->user()->middle_name;
-            $content_details = $description;
+            $issued_datetime = date('Y-m-d H:i:s');
+            $task_category = 'Message';
+            $task_activity_title = 'Dossier Section Evaluation Report';
+            $content_details = 'Dossier Section Evaluation was Completed by '.auth()->user()->first_name.' '.auth()->user()->middle_name;;
             $route_link = '';
-            $activity_status = 'inprogress';
+            $activity_status = 'Completed';
             $uploaded_document_id = $uploaded_document->id;
 
             //insert this into task tracker // $main_task->id
@@ -167,14 +174,12 @@ class DossierSectionAssigController extends Controller
             $new_notification['type']='Notification';
             $new_notification['data']='Dossier Section Evaluation is uploaded by '.auth()->user()->first_name .' '.auth()->user()->middle_name;
             $new_notification['subject']=$description;
-            $new_notification['alert_level']='high';
+            $new_notification['alert_level']=null;
             $new_notification['related_document']=  $uploaded_document_id;
             $new_notification['from_user']= auth()->user()->first_name . ' '. auth()->user()->middle_name;
             $new_notification['related_id'] = $dossier_assignment_id;
-            $new_notification['remark']='remark';
-            // ::send($users, new ($invoice));
+            $new_notification['remark']=null;
 
-            //todo from user in notification
             $user=User::find($dossier_section_assignment->section_from_user_id);
             Notification::send($user, new InformationNotification($new_notification));
             event (new DossierAssignmentEvent($dossier_section_assignment->section_from_user_id, 'Evaluation of Assigned Dossier Section was Uploaded by '.auth()->user()->first_name));
@@ -203,12 +208,12 @@ class DossierSectionAssigController extends Controller
         //update activity for timeline
         $main_task = $this->get_main_task_id($section->section_related_id);
         $end_time = date('Y-m-d H:i:s', strtotime('+ 30 days'));
-        $issued_datetime = date('Y-m-d H:i:s', strtotime('-3'));
-        $task_category = 'Deadline Extension';
+        $issued_datetime = date('Y-m-d H:i:s');
+        $task_category = 'Deadline Extension Request';
         $task_activity_title = 'Deadline Extension Request for Dossier Section Evaluation';
         $assessor = User::find($section->section_from_user_id); //assessor who assigned the section
         $content_details = 'Dossier Section Evaluation Extension was Requested by '.auth()->user()->first_name .' '.auth()->user()->middle_name .
-            '. Date Requested: '.$deadline;
+            '. Date Requested: '.$deadline.'. Reason: '.$description ;
         $route_link = '';
         $activity_status = 'Inprogress';
         $uploaded_document_id = null;
@@ -241,7 +246,7 @@ class DossierSectionAssigController extends Controller
     }
     public function finished_index(){
 
-        $section_assigns =dossier_section_assignment::join('users','dossier_section_assignments.section_from_user_id','users.id')
+      /*  $section_assigns =dossier_section_assignment::join('users','dossier_section_assignments.section_from_user_id','users.id')
             ->join('uploaded_documents','uploaded_documents.id','dossier_section_assignments.sent_document_id')
             ->select(
                 'users.first_name',
@@ -249,9 +254,31 @@ class DossierSectionAssigController extends Controller
                 'uploaded_documents.path'
             )
             ->where('dossier_section_assignments.section_to_user_id',auth()->user()->id)
-            ->where('dossier_section_assignments.status','Evaluated')
+            ->where('dossier_section_assignments.status','Completed')
             ->orderByDesc('dossier_section_assignments.id')
             ->get();
+        */
+
+        $section_assigns = dossier_section_assignment::join('dossiers', 'dossiers.id', 'dossier_section_assignments.dossier_id')
+            ->join('users','dossier_section_assignments.section_from_user_id','users.id')
+            ->join('dossier_assignments', 'dossier_assignments.dossier_id', 'dossiers.id')
+            ->join('applications', 'applications.id', 'dossier_assignments.application_id')
+            ->join('medicinal_products', 'medicinal_products.id', 'applications.medical_product_id')
+            ->join('medicines', 'medicines.id', 'medicinal_products.medicine_id')
+            ->join('company_suppliers', 'company_suppliers.id', 'applications.company_supplier_id')
+            ->join('uploaded_documents','uploaded_documents.id','dossier_section_assignments.received_document_id')
+            ->select(
+                'users.first_name', 'users.middle_name', 'users.last_name',
+                'dossier_section_assignments.*',
+                'uploaded_documents.path',
+                'medicines.product_name', 'medicinal_products.product_trade_name', 'company_suppliers.trade_name as company_name'
+            )
+            ->where('dossier_section_assignments.section_to_user_id', auth()->user()->id)
+            ->where('dossier_section_assignments.status','Completed')
+            ->orderByDesc('dossier_section_assignments.id')
+            ->get();
+
+
         $breadcrumb_title='Dossier Section Assignment';
         return view('dossier_section_assignment.finished_index',['section_assigns'=>$section_assigns,'breadcrumb_title'=>$breadcrumb_title]);
 

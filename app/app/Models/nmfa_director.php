@@ -5,13 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class certified_application extends Model
+class nmfa_director extends Model
 {
+    protected $table = 'nmfa_directors';
+    protected $guarded = [];
+    
     use HasFactory;
-
-
-    public function applications(){
-
-        return $this->belongsTo(applications::class);
-    }
 }

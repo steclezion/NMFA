@@ -9,7 +9,6 @@ use App\Models\dossier_assignment;
 use App\Models\MainTask;
 use App\Models\User;
 use App\Notifications\RemindersNotification;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
@@ -45,7 +44,7 @@ class update_evaluation_days_count extends Command
      *
      * @return int
      */
-    public function handle_orig()
+    public function handle()
     {
 
         $assignments = dossier_assignment::join('dossiers', 'dossier_id', 'dossier_assignments.dossier_id')
@@ -131,109 +130,6 @@ class update_evaluation_days_count extends Command
 
     } //handle
 
-    public function handle()
-    {
-
-        $assignments = dossier_assignment::join('dossiers', 'dossiers.id', 'dossier_assignments.dossier_id')
-            ->join('dossier_evaluation_progresses',
-                'dossier_evaluation_progresses.dossier_assignment_id', 'dossier_assignments.id')
-            ->join('main_tasks', 'main_tasks.related_id', 'dossier_assignments.id')
-            ->where('main_tasks.related_task', 'Dossier Evaluation')
-            ->select(
-                'dossiers.dossier_ref_num',
-                'dossier_assignments.id as dossier_assign_id',
-                'dossier_assignments.supervisor_id as from_user_id',
-                'dossier_assignments.assessor_id as to_user_id',
-                'dossier_assignments.assigned_datetime',
-                'main_tasks.task_status as task_status',
-                'main_tasks.task_duration_days_plan as dossier_eval_total_days',
-                'dossier_evaluation_progresses.id as eval_progress_id',
-                'dossier_evaluation_progresses.day_count as day_count'
-            )
-            ->get();
-
-
-        // PASS 1/2
-        //first update the day count and then based on the updated value of day_count perform reminders
-
-        foreach ($assignments as $assignment) {
-
-            //count if evaluation is inprogress (so, for status of pause and others count will not be updated)
-            if ($assignment->task_status == "Inprogress"){
-            $dossier_eval_total_days = $assignment->dossier_eval_total_days;
-            # evaluation days count (assigned_date to now)
-            $day_count = Carbon::create($assignment->assigned_datetime)->diffInDays(Carbon::now(), false);
-            if ($assignment->day_count < $dossier_eval_total_days) {
-
-                // update day count
-                dossier_evaluation_progress::where('id', $assignment->eval_progress_id)
-                    ->update(
-                        [
-                            'day_count' => $day_count,
-                        ]
-                    );
-            }
-        }
-        }
-
-        // PASS 2/2
-        // perform reminders
-        foreach ($assignments as $assignment) {
-
-            $dossier_eval_total_days = $assignment->dossier_eval_total_days;
-
-            $day_count = $assignment->day_count;
-
-            if ($assignment->task_status == "Inprogress"){
-
-                if ($assignment->day_count < $dossier_eval_total_days) {
-
-                    // remind assessor 10 days before deadline
-                    $remind_dossier_eval_deadline_before_days = Config::get('site_vars.remind_dossier_eval_deadline_before_days');
-                    $reminder_day = $dossier_eval_total_days - $remind_dossier_eval_deadline_before_days;
-
-                    if ($day_count == $reminder_day) {
-                        $message = "Reminder for Dossier: " . $assignment->dossier_ref_num . ". "
-                            . $remind_dossier_eval_deadline_before_days . " days remaining to complete dossier evaluation.";
-                        $subject = 'Dossier Evaluation Deadline Reminder';
-                        $user = User::find($assignment->to_user_id); //assessor
-                        $this->remind_and_save_details($message, $assignment, $subject, $user);
-
-                    }
-
-                } elseif ($day_count == $dossier_eval_total_days){
-                    // deadline reached but evaluation is still not completed (since status == inprogress) so
-                    // lock the evaluation and notify both assessor and supervisor
-                    MainTask::where('related_id', $assignment->dossier_assign_id)
-                        ->update(
-                            [
-                                'task_status' => 'Locked',
-                            ]
-                        );
-
-                    $supervisor_message = "Dossier Evaluation Deadline Expired for Dossier: " . $assignment->dossier_ref_num .
-                        ". The Dossier Evaluation has been Locked.";
-
-                    $assessor_message = $supervisor_message . ' Please request your supervisor for extension.';
-
-                    $subject = 'Dossier Evaluation Locked';
-                    $assessor = User::find($assignment->to_user_id); //assessor
-                    $supervisor = User::find($assignment->from_user_id); //supervisor
-
-                    //Notify Assessor
-                    $this->remind_and_save_details($assessor_message, $assignment, $subject, $assessor);
-
-                    //Notify Supervisor
-                    $this->remind_and_save_details($supervisor_message, $assignment, $subject, $supervisor);
-
-                }
-            } //end if
-
-
-        }
-
-    } //end handle
-
     private function remind_and_save_details($message, $assignment, $subject, $user)
     {
 
@@ -248,7 +144,6 @@ class update_evaluation_days_count extends Command
 
         Notification::send($user, new RemindersNotification($new_notification));
 
-        $message = $new_notification['type'].':'.$subject;
         event(new DossierEvaluationRemindersEvent($user->id, $message));
     }
 }
