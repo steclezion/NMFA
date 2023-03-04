@@ -327,9 +327,11 @@ Route::group(['middleware' => ['auth']], function () {
         //fetch_uploaded_acknowledgement_letter_if_any
         Route::post('/take_uploaded_acknowledgement_letter_if_any_psur', [App\Http\Controllers\AcknowledgmentLetterReceiptPsurController::class, 'fetch_uploaded_acknowledgement_letter_if_any_psur'])->name('fetch_uploaded_acknowledgement_letter_if_any_psur');
 
-
-        //Generating Financial_Notification generating_financial_Notifications
-        Route::get('/generating_financial_notifications', [App\Http\Controllers\receipts::class, 'generating_financial_notifications'])->name('generating_financial_notifications');
+//Generating Financial_Notification generating_financial_Notifications
+ Route::get('/generating_financial_notifications', [App\Http\Controllers\receipts::class, 'generating_financial_notifications'])->name('generating_financial_notifications');
+    
+    
+    
         //Saving finacial Notification to the database  save_financial_notification
         Route::post('/save_financial_notification', [App\Http\Controllers\receipts::class, 'save_financial_notification'])->name('save_financial_notification');
         //financial_notification.application

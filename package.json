@@ -25,6 +25,19 @@
         "html-to-docx": "^1.2.4",
         "laravel-echo": "^1.11.2",
         "laravel-echo-server": "^1.6.2",
-        "pusher-js": "4.3"
-    }
+        "localtunnel": "^2.0.2",
+        "pusher-js": "4.3",
+    },
+    "name": "peru.nmfa.er_after_demo",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "git@github.com:steclezion/NMFA.git",
+    "author": "steclezion <steclezion@gmail.com>",
+    "license": "MIT",
+
+    "scripts": {
+        "golive": "lt --port 5500"
+    },
+
+
 }
