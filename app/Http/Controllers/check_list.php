@@ -260,7 +260,7 @@ return view($route_name,[
      }
 
 
-     public function checklist_renew()
+     public function checklist_renew(Request $request)
      {
 
         //
