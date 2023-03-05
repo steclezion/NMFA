@@ -206,32 +206,36 @@ return view('dossier_status_sample.dossier_status_renew',
 
     public function application_reception_on_going_renew(Request $request)
     {
-    
 
+        dd($request->all());
+        
+    
+     
         $company_suppliers_template = company_suppliers_template::all()->sortBy('trade_name');
 
         $applications = applications::where('applications.user_id',auth()->user()->id)
-            //    ->leftjoin('manufacturers','manufacturers.application_id','applications.application_id')
+            //  ->leftjoin('manufacturers','manufacturers.application_id','applications.application_id')
                ->leftjoin('medicinal_products','medicinal_products.application_id','applications.application_id')
                ->leftjoin('company_suppliers','company_suppliers.application_id','applications.application_id')
                ->leftjoin('users','users.id','applications.user_id')
-               ->join('contacts','contacts.application_id','applications.application_id')
+               ->leftjoin('contacts','contacts.application_id','applications.applicatio_id')
                ->leftjoin('medicines','medicinal_products.medicine_id','medicines.id')
-               ->select('medicinal_products.*','medicinal_products.product_trade_name as t_name','company_suppliers.*','medicines.*',
+               ->select('medicinal_products.*','medicinal_products.product_trade_name as t_name',
+                         'company_suppliers.*','medicines.*',
                'company_suppliers.trade_name as cs_tradename','applications.*','contacts.*','contacts.first_name as cfirst_name',
                'contacts.middle_name as cmiddle_name','contacts.last_name as clast_name')
                ->where('applications.application_status','=','processing')
                ->where('applications.registration_type','=','Re-new')
-               ->where('contacts.contact_type','=','Supplier')
+              // ->where('contacts.contact_type','=','Supplier')
                ->orderBy('applications.application_number','ASC')
                ->get();
              
                
         
-          return view('application_reception.in_process_on_going_renew_application',[
-            'company_suppliers_template' =>$company_suppliers_template,
-              'applications'=>$applications,
-              ]);
+        //   return view('application_reception.in_process_on_going_renew_application',[
+        //     'company_suppliers_template' =>$company_suppliers_template,
+        //       'applications'=>$applications,
+        //       ]);
 
     }
 

@@ -75,6 +75,7 @@ Route::group(['middleware' => ['auth']], function () {
 
 
         Route::get('/in_process_on_going_renew_application', [App\Http\Controllers\application_status::class, 'application_reception_on_going_renew'])->name('in_process_on_going_renew_application');
+        
         Route::post('/insert/compostion', [App\Http\Controllers\ApplicationReceptionController::class, 'store_retrive_composition'])->name('insert.compostion');
         Route::post('/company_supplier', [App\Http\Controllers\ApplicationReceptionController::class, 'company_supplier'])->name('company_supplier');
         Route::post('/generate.application_number', [App\Http\Controllers\ApplicationReceptionController::class, 'generate_new_application'])->name('generate.application_number');
@@ -210,6 +211,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         //checklist_renew
         Route::get('/checklist_renew', [App\Http\Controllers\check_list::class, 'checklist_renew'])->name('application.checklist_renew');
+        
         Route::get('/check_list_process_register/{application_id}', [App\Http\Controllers\check_list::class, 'process_checklist_register'])->name('application.checklist_re');
 
 

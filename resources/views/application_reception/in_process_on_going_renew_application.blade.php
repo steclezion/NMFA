@@ -52,7 +52,7 @@
                   <tr>
                     <th>ID</th>
                     <th>Application Number</th>
-                    <th>Re-registration Number</th>
+                    <th hidden >Re-registration Number</th>
                     <th>Application Status</th>
                     <th>Application Type</th>
                     <th>Generic Name</th>
@@ -69,7 +69,7 @@
                <tr>
                     <td>{{ $i++ }}</td>
                     <td>{{ $application->application_number }}</td>
-                    <td><span class="badge bg-warning">{{ $application->re_registration_number }}</span>
+                    <td hidden><span class="badge bg-warning">{{ $application->re_registration_number }}</span>
                     </td>
                     <td> 
 @php
