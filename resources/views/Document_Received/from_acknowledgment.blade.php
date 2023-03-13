@@ -55,6 +55,7 @@
                     <th>Brand Name</th>
                     <th>Applicant  Name</th>
                     <th>Application Status</th>
+                    <th>Application Mode </th>
                     <th>Application Type </th>
                     <th>Uploaded Date </th>
                     <th width="10%">Action</th>

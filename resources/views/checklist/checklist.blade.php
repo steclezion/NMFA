@@ -54,7 +54,7 @@
                   <thead>
                   <tr>
                     <th {{ $i=0 }} width="2%">ID</th>
-                    <th width="8%" >Application Number</th>
+                    <th width="p8%" >Application Number</th>
                  
                     <th width="10%" >Generic Name</th>
                     <th width="10%" >Brande Name</th>

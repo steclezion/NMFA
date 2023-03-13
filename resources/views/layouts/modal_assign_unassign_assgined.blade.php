@@ -87,7 +87,7 @@
         ajax: "{{ route('assignment.index') }}",
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-            {data: 'application_number', name: 'application_number','visible': false},
+            {data: 'application_number', name: 'application_number','visible': true},
             {data: 'product_name', name:'product_name'},
             {data: 'trade_name', name:'trade_name'},
             {data: 'fullname', name:'fullname'},

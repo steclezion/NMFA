@@ -140,7 +140,7 @@ class nmfa_units_report_reminder extends Command
         $new_notification['alert_level'] = null;
 
         Notification::send($user, new RemindersNotification($new_notification));
-
+        $message = $new_notification['type'].':'.$subject;
         event(new DossierEvaluationRemindersEvent($user->id, $message));
 
     }

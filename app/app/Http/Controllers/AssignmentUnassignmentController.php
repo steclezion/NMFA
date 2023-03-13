@@ -28,7 +28,6 @@ use App\Notifications\ApplicationReceiptionNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Models\application_evaluation_progresses;
 use App\Events\ApplicationReceiptionEvent;
-
 use Illuminate\Support\Arr;
 
 
@@ -139,7 +138,21 @@ class AssignmentUnassignmentController extends Controller
 
                     return $btn;
                 })
-                ->rawColumns(['action', 'application_status'])
+
+             ->addColumn('registration_type', function ($row) {
+
+                    if ($row->registration_type == 'New') {
+                        $badge = 'badge bg-secondary';
+                    } elseif ($row->registration_type == 'Re-new') {
+                        $row->registration_type='Re-newal';
+                        $badge = 'badge bg-success';
+    
+                    }
+                    $btn = "<span class='$badge'>  $row->registration_type  </span>";
+                    return $btn;
+                })
+
+                ->rawColumns(['action', 'application_status','registration_type'])
                 ->make(true);
         }
 
@@ -316,17 +329,34 @@ class AssignmentUnassignmentController extends Controller
                 ->addColumn('application_status', function ($row) {
 
                     if ($row->application_status == 'processing') {
-                        $badge = 'badge bg-warning';
+                        $badge = 'badge bg-secondary';
                     } elseif ($row->application_status == 'Preliminary screening completed') {
                         $badge = 'badge bg-success';
                     } elseif ($row->application_status == 'Preliminary screening rejected') {
+
                         $badge = 'badge bg-danger';
+
                     }
+
                     $btn = "<span class='$badge'>  $row->application_status  </span>";
 
                     return $btn;
                 })
-                ->rawColumns(['action', 'application_status'])
+
+                ->addColumn('registration_type', function ($row) {
+
+                    if ($row->registration_type == 'New') {
+                        $badge = 'badge bg-warning';
+                    } elseif ($row->registration_type == 'Re-new') {
+                        $row->registration_type='Re-newal';
+                        $badge = 'badge bg-success';
+    
+                    }
+                    $btn = "<span class='$badge'>  $row->registration_type  </span>";
+                    return $btn;
+                })
+
+                ->rawColumns(['action', 'application_status','registration_type'])
                 ->make(true);
         }
 

@@ -278,15 +278,15 @@ return view($route_name,[
            
          $applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
         ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
+        ->join('medicines','medicinal_products.medicine_id','medicines.id')
         ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
         //->join('users','users.id','applications.user_id')
-        ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+        ->join('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
         ->join('contacts','contacts.application_id','applications.application_id')
-        ->leftjoin('checklists','checklists.application_id','applications.application_id')
-
-          ->leftjoin('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
+        ->join('checklists','checklists.application_id','applications.application_id')
+        ->join('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
         ->distinct()
-        ->select('checklists.*','documents.*',
+        ->select('medicines.*','checklists.*','documents.*',
         'application_receipt_of_registrations.application_number as app_receipt_number',
         'checklists.application_id as check_app','applications.application_id',
         'medicinal_products.*', 'medicinal_products.product_trade_name as t_name',
@@ -301,10 +301,8 @@ return view($route_name,[
         ->orderBy('applications.application_number','ASC')
         ->get();
        
-
-      
-
-           return view('checklist.checklist_re-register',[
+    
+        return view('checklist.checklist_re-register',[
             'countries' => $countries,
             'fast_track_applications' =>$fast_track_applications,
             'dosage_forms'=>  $dosage_forms,

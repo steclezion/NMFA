@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class application_receipt_of_registration extends Model
 {
     protected $table = 'application_receipt_of_registrations';
-    protected $guarded = [];
+    protected $guarded = ['old_app_id'];
     use HasFactory;
 }

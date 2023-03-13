@@ -274,8 +274,6 @@ return view($route_name,[
         $product_details =  product_details::all()->sortBy('product_name');
 
     
-               
-           
          $applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
         ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
         ->join('company_suppliers','company_suppliers.application_id','applications.application_id')

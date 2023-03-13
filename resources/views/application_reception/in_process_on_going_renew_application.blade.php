@@ -82,7 +82,9 @@ elseif($application->application_status == 'Preliminary screening rejected') { $
                     <span class="{{  $badge }}"> {{ $application->application_status }} </span>
                     </td>
                     <td> 
-                  @php if($application->registration_type == 'New') {  $badge = 'badge bg-success'; }elseif($application->registration_type == 'Re-new') { $badge = 'badge bg-success'; }  @endphp
+                  @php if($application->registration_type == 'New') {  $badge = 'badge bg-success'; }
+                  elseif($application->registration_type == 'Re-new') { $application->registration_type ='Re-newal'; $badge = 'badge bg-success'; } 
+                  @endphp
                     <span class="{{  $badge }}"> {{ $application->registration_type }} </span>
                     </td>
                     <td>{{ $application->product_name }}</td>

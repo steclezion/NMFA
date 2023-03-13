@@ -205,7 +205,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/reciepts', [App\Http\Controllers\receipts::class, 'store'])->name('receipts.store');
         //Route to Check List
         Route::post('/get_checklist_value', [App\Http\Controllers\ApplicationReceptionController::class, 'get_checklist_value'])->name('get_checklist_value');
+        
+        
+        
         Route::get('/check_list', [App\Http\Controllers\check_list::class, 'index'])->name('check_list.index');//report_list.index
+       
+       
         Route::get('/check_list_test/{application_id}', [App\Http\Controllers\check_list::class, 'get_checked_values'])->name('application.checklist');
 
 
@@ -466,8 +471,12 @@ Route::group(['middleware' => ['auth']], function () {
 
 
         Route::GET('/all_assigned_unassigned', [App\Http\Controllers\AssignmentUnassignmentController::class, 'all_assigned_unassigned'])->name('assignment.all_assigned_unassigned');
+      
+      
         //  Document Received and Uploaded To Applicant
         Route::GET('/documents_checked_from_assessor_perc_nmfa_director', [App\Http\Controllers\DocumentReceivedUploadedController::class, 'index'])->name('doc.index');
+        
+        
         Route::GET('/documents_financial_notification', [App\Http\Controllers\DocumentReceivedUploadedController::class, 'financial_notification'])->name('documents_financial_notification');
 
         //documents_financial_notification

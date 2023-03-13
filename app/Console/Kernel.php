@@ -28,12 +28,16 @@ class Kernel extends ConsoleKernel
         $schedule->command('peru:update_eval_day_count')->everyMinute();  //daily defaults to midnight, or use dailyAt('13:00')
         $schedule->command('peru:nmfa_units_report_reminder')->daily();
         $schedule->command('peru:qc_report_reminder')->daily();
-        $schedule->command('peru:applicant_query_response_reminder')->everyMinute();
+        $schedule->command('peru:applicant_query_response_reminder')->daily();
 
-        $schedule->command('peru:update_application_daycount')->everyMinute();
-        $schedule->command('peru:update_application_payment_daycount')->everyMinute();
+        $schedule->command('peru:update_application_daycount')->daily();
+        $schedule->command('peru:update_application_payment_daycount')->daily();
         $schedule->command('peru:preliminary_screening_daycount')->daily();
         //daily defaults to midnight, or use dailyAt('13:00')
+
+
+        // release 4
+        $schedule->command('peru:registration_expiry_notification')->daily();  // monthlyOn(1) -- start of the month
     }
 
     /**

@@ -21,6 +21,7 @@
             {data: 'cs_tradename', name: 'cs_tradename','visible': true},
             {data: 'application_status', name:'application_status','visible': false},
             {data: 'application_typee', name: 'application_typee', orderable: true, searchable: true},
+            {data: 'registration_type', name: 'registration_type', orderable: true, searchable: true},
             {data: 'ackdate', name: 'ackdate', orderable: true, searchable: true},
 
             {data: 'action', name: 'action', orderable: true, searchable: true},

@@ -728,7 +728,7 @@ return response()->json(['Message'=>true,'Download_Link'=>$documents->path,'Data
        $path = public_path('storage/Acknowledgement_Receipt_of_Registration_Application/uploaded_to_applicant');
        
        // <--- folder to store the pdf documents into the server;
-       $fileName =  $name."-".$time.'.pdf' ; // <--giving the random filename,
+       $fileName =  $time."-".$name; // <--giving the random filename,
        $filePath = $request->file('file_ACK')->storeAs('Acknowledgement_Receipt_of_Registration_Application/uploaded_to_applicant/', $fileName, 'public');
        $generated_pdf_link = Storage::url('public/Acknowledgement_Receipt_of_Registration_Application/uploaded_to_applicant/'.$fileName);
        

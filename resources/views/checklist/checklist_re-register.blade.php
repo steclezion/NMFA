@@ -2,8 +2,6 @@
 @section('stylesheets')
 
 
-
-
 <link rel="stylesheet" href="{{asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css')}}">
 <link rel="stylesheet" href="{{asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css')}}">
 <link rel="stylesheet" href="{{asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css')}}">
@@ -53,32 +51,30 @@
                   <div class="card-body">
                   <div id="example_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer ">
                   <table id="example" class="table table-bordered table-striped">
-                  <thead>
-                  <tr>
-                    <th {{ $i=0 }}>ID</th>
-                    <th>Application Number</th>
-                    <th>Application Re-Register Number</th>
-                    <th>Brand Name</th>
-                    <th>Applicant Name</th>
-                    <th>Applicant Contact Person</th>
-                    <th>Application Status</th>
-                    <th>Action</th>
-                 </tr>
+               
+                      <thead>
+                      <tr>
+                      <th {{ $i=0 }} width="2%">ID</th>
+                      <th width="8%" >Application Number</th>
+                      <th width="10%" >Generic Name</th>
+                      <th width="10%" >Brande Name</th>
+                      <th width="10%"  >Applicant Name</th>
+                      <th width="10%" hidden>Applicant contact person</th>
+                      <th width="10%">Application Status</th>
+                      <th width="12%">Action</th>
+                      </tr>
+                      </thead>
 
-                  </thead>
+
                   <tbody {{ $i=1 }}>
                   @foreach($applications as $application)
                <tr>
-                    <td> {{ $i++ }}</td>
-                    <td>  {{ $application->application_number }}                 
-                    <td>  {{ $application->re_registration_number }} </td>
-<!-- <i style="color:blue;cursor:pointer" id="modal_show_detail_information" title="Guidelines on Application Submission process"  class="fas fa-info-circle">  </i> -->
-
-
-</td>
-                    <td>{{ $application->product_trade_name }}</td>
-                    <td>{{ $application->trade_name  }}</td>
-                    <td>{{ $application->first_name." ".$application->middle_name." ".$application->last_name }}</td>
+                <td>{{ $i++ }}</td>
+                <td>{{ $application->application_number }}</td>
+                <td>{{ $application->product_name }}</td>
+                <td>{{ $application->product_trade_name }}</td>
+                <td>{{ $application->trade_name  }}</td>
+                <td hidden >{{ $application->first_name." ".$application->middle_name." ".$application->last_name }}</td>
                     <td>
                     @php
 
@@ -89,13 +85,12 @@ elseif($application->application_status == 'Preliminary screening rejected') { $
  @endphp
 
     <span class="{{  $badge }}"> {{ $application->application_status }} </span></td>
-        
-
-         <td width="10%">
+    
+    <td width="10%">
      @if( $application->application_status == 'processing' )
      <a   class="btn btn-info btn-sm"   id="sam" rel="tooltip"  title="Attest" style="cusror:pointer" 
+     href=" {{ route('application.checklist_re',$application->application_id)  }}" >  <i class='fas fa-tasks'></i> </a>
      
-      href=" {{ route('application.checklist_re',$application->application_id)  }}" >  <i class='fas fa-tasks'></i> </a>
      @elseif($application->application_status == 'Preliminary screening completed' || $application->application_status == 'Preliminary screening rejected' )
      
      <a class="btn btn-info btn-sm"   title="Show Assessor Progress"
