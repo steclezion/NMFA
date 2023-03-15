@@ -58,10 +58,7 @@ class DocumentReceivedUploadedController extends Controller
         if ($request->ajax())
 {
 
-
-    
-
-    $data = Acknowledgement_letter::join('applications','applications.application_id','acknowledgement_letters.application_id')
+  $data = Acknowledgement_letter::join('applications','applications.application_id','acknowledgement_letters.application_id')
     ->rightjoin('documents','documents.id','acknowledgement_letters.uploaded_applicant_document_id')
     ->leftjoin('contacts','contacts.application_id','acknowledgement_letters.application_id')
     ->leftjoin('manufacturers', 'applications.application_id', '=', 'manufacturers.application_id')
@@ -146,6 +143,9 @@ class DocumentReceivedUploadedController extends Controller
     }
 
 
+
+
+    
 
 public function invoice_receipts(Request $request)
 {

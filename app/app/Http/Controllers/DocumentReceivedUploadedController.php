@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\document_received_uploaded;
+use App\Models\application_receipt_of_registration;
 use App\Models\Acknowledgement_letter;
 use App\Models\invoices ;
 use App\Models\receipt;
@@ -43,7 +44,105 @@ class DocumentReceivedUploadedController extends Controller
 {
   
 
+  public function acknowlegement_receipt(Request $request)
+  {
+
+    $dataa = User::orderBy('id','ASC')->get();
+     if ($request->ajax())
+{
+
+$data = application_receipt_of_registration::join('applications','applications.application_id','application_receipt_of_registrations.application_id')
+->join('documents','documents.id','application_receipt_of_registrations.uploaded_to_applicant')
+->join('contacts','contacts.application_id','application_receipt_of_registrations.application_id')
+//->join('manufacturers', 'application_receipt_of_registrations.application_id', '=', 'manufacturers.application_id')
+->join('medicinal_products', 'application_receipt_of_registrations.application_id', '=', 'medicinal_products.application_id')
+->join('company_suppliers','application_receipt_of_registrations.application_id','=','company_suppliers.application_id')
+->join('invoices','application_receipt_of_registrations.application_id','=','invoices.application_id')
+->join('medicines', 'medicinal_products.medicine_id', '=', 'medicines.id')
+->join('checklists','checklists.application_id','application_receipt_of_registrations.application_id')
+->select(
+'applications.*',
+'applications.application_number as app_number',
+'application_receipt_of_registrations.*',
+'application_receipt_of_registrations.created_at as ackdate',
+'documents.*',
+'checklists.*',
+'contacts.*', 
+'medicines.product_name',
+'medicinal_products.product_trade_name',
+//'manufacturers.name as manufacturer_name',
+'company_suppliers.trade_name as cs_tradename'
+)
+->where('contacts.contact_type','=','Supplier')
+->where('application_receipt_of_registrations.document_id','!=',null)
+->where('applications.user_id','=',auth()->user()->id)
+->orderBy('applications.application_number','ASC')
+->get();
+
+
+
+
+// $data = Book::latest()->get();
+        return Datatables::of($data)
+                ->addIndexColumn()
+
+
+                                    
+->addColumn('application_typee', function($row){
+if($row->application_type == 1) {$application_type="<span class='badge bg-primary'> Standard Mode </span>";}  
+else { $application_type= "<span class='badge bg-warning'> Fast Track Mode</span>" ;}
+
+return $application_type;
+                })
+
+
+->addColumn('action', function($row){
+
+$btn = '<a href="'.@$row->path.'" 
+ class="btn-success btn-sm editAssign"><b class="fas fa-file-download">   </b> </a>';
+
+
+return $btn;
+                })
+            
+                ->addColumn('application_status', function($row){
+
+
+                    if($row->application_status == 'processing') {  $badge = 'badge bg-warning'; }
+                    elseif($row->application_status == 'Preliminary screening completed') { $badge = 'badge bg-success'; }
+                    elseif($row->application_status == 'Preliminary screening rejected') { $badge = 'badge bg-danger'; }
+
+
+                    $btn = "<span class='$badge'>  $row->application_status  </span>";
+
+                    return $btn;
+                                    })
+
+                                    ->addColumn('registration_type', function ($row) {
+
+                                        if ($row->registration_type == 'New') {
+                                            $badge = 'badge bg-secondary';
+                                        } elseif ($row->registration_type == 'Re-new') {
+                                            $row->registration_type='Re-newal';
+                                            $badge = 'badge bg-success';
+                        
+                                        }
+                                        $btn = "<span class='$badge'>  $row->registration_type  </span>";
+                                        return $btn;
+                                    })
+
+                ->rawColumns(['action','application_typee','application_status','registration_type'])
+                ->make(true);
+}
   
+      return view('Document_Received.from_acknowledgment_letter_registration');
+
+
+
+
+
+
+  }
 
 
 
@@ -129,9 +228,22 @@ class DocumentReceivedUploadedController extends Controller
                         return $btn;
                                         })
 
+                                        ->addColumn('registration_type', function ($row) {
+
+                                            if ($row->registration_type == 'New') {
+                                                $badge = 'badge bg-secondary';
+                                            } elseif ($row->registration_type == 'Re-new') {
+                                                $row->registration_type='Re-newal';
+                                                $badge = 'badge bg-success';
+                            
+                                            }
+                                            $btn = "<span class='$badge'>  $row->registration_type  </span>";
+                                            return $btn;
+                                        })
 
 
-                    ->rawColumns(['action','application_typee','application_status'])
+
+                    ->rawColumns(['action','application_typee','application_status','registration_type'])
                     ->make(true);
 }
       
@@ -225,10 +337,6 @@ return $btn;
 
 
 }
-
-
-
-
 
 
     public function financial_notification(Request $request)

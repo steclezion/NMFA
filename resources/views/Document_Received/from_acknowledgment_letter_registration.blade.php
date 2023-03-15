@@ -22,30 +22,30 @@
             <ul class="nav nav-tabs" id="custom-content-below-tab" role="tablist">
 
               <li class="nav-item">
-                <a href="{{route('doc.acknowlegement_receipt') }}" class="nav-link" id="custom-content-below-home-tab" width="15%" role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment Receipt</a>
+                <a href="{{route('doc.acknowlegement_receipt') }}" class="nav-link active" id="custom-content-below-home-tab" width="15%" role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment Receipt</a>
               </li>
 
 
               <li class="nav-item">
-                <a href="{{route('doc.index') }}" class="nav-link active" id="custom-content-below-home-tab"  role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment letters </a>
+                <a href="{{route('doc.index') }}" class="nav-link"  id="custom-content-below-home-tab"  role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment letters </a>
               </li>
               
               <li class="nav-item">
                 <a class="nav-link" href="{{route('documents_invoice.invoice_received') }}" role="tab" aria-controls="custom-content-below-profile" aria-selected="false"> Invoices  </a>
               </li>
 
-               <li class="nav-item">
+              <li class="nav-item">
                 <a class="nav-link" href="{{route('documents_financial_notification') }}" role="tab" aria-controls="custom-content-below-profile" aria-selected="false">Financial Notifications</a>
-               </li>
+              </li>
 
-               <li class="nav-item">
+             <li class="nav-item">
                 <a class="nav-link" href="{{route('documents_psurs') }}" role="tab" aria-controls="custom-content-below-profile" aria-selected="false">PSURS</a>
-               </li>
+              </li>
 
 
                 <li class="nav-item">
                 <a class="nav-link" href="{{route('documents_nmfa_alerts') }}" role="tab" aria-controls="custom-content-below-profile" aria-selected="false">Directors Alert Notification</a>
-                </li>
+              </li>
              
             
             </ul>
@@ -92,7 +92,7 @@
 <script rel="stylesheet" src="{{ asset('/app/lib/1.10.19/js/dataTables.bootstrap4.min.js')}}" ></script>
 
 
-@include('layouts.modal_acknowledgement_uploaded')
+@include('layouts.modal_acknowledgment_receipt_letter')
 
 
 @endsection

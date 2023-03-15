@@ -472,7 +472,10 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::GET('/all_assigned_unassigned', [App\Http\Controllers\AssignmentUnassignmentController::class, 'all_assigned_unassigned'])->name('assignment.all_assigned_unassigned');
       
-      
+       //  Acknowledgment Receipt of Registration
+       Route::GET('/documents_checked_from_assessor_application_registration', [App\Http\Controllers\DocumentReceivedUploadedController::class, 'acknowlegement_receipt'])->name('doc.acknowlegement_receipt');
+        
+
         //  Document Received and Uploaded To Applicant
         Route::GET('/documents_checked_from_assessor_perc_nmfa_director', [App\Http\Controllers\DocumentReceivedUploadedController::class, 'index'])->name('doc.index');
         

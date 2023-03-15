@@ -278,13 +278,13 @@ return view($route_name,[
            
          $applications = applications::join('manufacturers','manufacturers.application_id','applications.application_id')
         ->join('medicinal_products','medicinal_products.application_id','applications.application_id')
-        ->join('medicines','medicinal_products.medicine_id','medicines.id')
-        ->join('company_suppliers','company_suppliers.application_id','applications.application_id')
+        ->leftjoin('medicines','medicinal_products.medicine_id','medicines.id')
+        ->leftjoin('company_suppliers','company_suppliers.application_id','applications.application_id')
         //->join('users','users.id','applications.user_id')
-        ->join('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
+        ->leftjoin('application_receipt_of_registrations','application_receipt_of_registrations.application_id','applications.application_id')
         ->join('contacts','contacts.application_id','applications.application_id')
-        ->join('checklists','checklists.application_id','applications.application_id')
-        ->join('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
+        ->leftjoin('checklists','checklists.application_id','applications.application_id')
+        ->leftjoin('documents', 'documents.id', '=', 'application_receipt_of_registrations.document_id')
         ->distinct()
         ->select('medicines.*','checklists.*','documents.*',
         'application_receipt_of_registrations.application_number as app_receipt_number',

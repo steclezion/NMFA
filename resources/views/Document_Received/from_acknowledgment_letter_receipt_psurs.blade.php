@@ -20,6 +20,11 @@
           <div class="card-body">
 
              <ul class="nav nav-tabs" id="custom-content-below-tab" role="tablist">
+
+              <li class="nav-item">
+                <a href="{{route('doc.acknowlegement_receipt') }}" class="nav-link" id="custom-content-below-home-tab" width="15%" role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment Receipt</a>
+              </li>
+              
               <li class="nav-item">
                 <a href="{{route('doc.index') }}" class="nav-link" id="custom-content-below-home-tab"  role="tab" aria-controls="custom-content-below-home" aria-selected="true">Acknowledgment letters </a>
               </li>
